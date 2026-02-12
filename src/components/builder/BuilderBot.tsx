@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { categories, agentTemplates } from "@/lib/data/agents";
 import { formatPrice } from "@/lib/utils";
-import { Send, Bot, Sparkles, Check, ArrowRight, Loader2 } from "lucide-react";
+import { Send, Bot, Sparkles, ArrowRight, Loader2 } from "lucide-react";
 
 interface Message {
   id: string;
@@ -38,26 +38,35 @@ export function BuilderBot() {
   const [currentStep, setCurrentStep] = useState(0);
   const [agentConfig, setAgentConfig] = useState<AgentConfig>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messageIdRef = useRef(1);
 
-  const scrollToBottom = () => {
+  // Generate unique message ID
+  const generateId = useCallback(() => {
+    messageIdRef.current += 1;
+    return `msg-${messageIdRef.current}`;
+  }, []);
+
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, scrollToBottom]);
 
-  const simulateTyping = async (response: Message) => {
+  const simulateTyping = useCallback(async (response: Message) => {
     setIsTyping(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000 + Math.random() * 1000));
+    // Use deterministic delay based on content length
+    const delay = 1000 + (response.content.length % 500);
+    await new Promise((resolve) => setTimeout(resolve, delay));
     setIsTyping(false);
     setMessages((prev) => [...prev, response]);
-  };
+  }, []);
 
-  const handleOptionSelect = async (option: string) => {
+  const handleOptionSelect = useCallback(async (option: string) => {
     // Add user message
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: generateId(),
       role: "user",
       content: option,
     };
@@ -75,7 +84,7 @@ export function BuilderBot() {
         setAgentConfig((prev) => ({ ...prev, industry: selectedCategory?.slug }));
         
         response = {
-          id: Date.now().toString() + "r",
+          id: generateId(),
           role: "assistant",
           content: `Perfekt! ${option} - eine tolle Branche!\n\nWie heisst Ihr Unternehmen?`,
         };
@@ -85,7 +94,7 @@ export function BuilderBot() {
         setAgentConfig((prev) => ({ ...prev, companyName: option }));
         
         response = {
-          id: Date.now().toString() + "r",
+          id: generateId(),
           role: "assistant",
           content: `Willkommen, ${option}! 🎉\n\nWas soll Ihr Assistent hauptsächlich tun?`,
           options: [
@@ -105,7 +114,7 @@ export function BuilderBot() {
         }));
         
         response = {
-          id: Date.now().toString() + "r",
+          id: generateId(),
           role: "assistant",
           content: "Verstanden! Welche Sprachen sprechen Ihre Kunden?",
           options: ["Nur Deutsch", "Deutsch + Englisch", "Deutsch + Französisch", "Alle Landessprachen"],
@@ -119,7 +128,7 @@ export function BuilderBot() {
         }));
         
         response = {
-          id: Date.now().toString() + "r",
+          id: generateId(),
           role: "assistant",
           content: "Wo soll der Assistent erreichbar sein?",
           options: ["Nur Website", "Website + WhatsApp", "Website + WhatsApp + Email"],
@@ -143,7 +152,7 @@ export function BuilderBot() {
         }));
         
         response = {
-          id: Date.now().toString() + "r",
+          id: generateId(),
           role: "assistant",
           content: `Ausgezeichnet! Basierend auf Ihren Angaben habe ich den perfekten Assistenten für Sie gefunden:\n\n**${matchingTemplate?.icon} ${matchingTemplate?.name}**\n\n${matchingTemplate?.description}\n\n✅ ${matchingTemplate?.features.slice(0, 3).join("\n✅ ")}\n\n💰 Preis: **${formatPrice(matchingTemplate?.priceMonthly || 299)}/Monat**`,
           options: ["Jetzt aktivieren", "Anpassen", "Andere Optionen zeigen"],
@@ -153,13 +162,13 @@ export function BuilderBot() {
       case 5: // Final action
         if (option === "Jetzt aktivieren") {
           response = {
-            id: Date.now().toString() + "r",
+            id: generateId(),
             role: "assistant",
             content: "🎉 Perfekt! Ich leite Sie jetzt zur Registrierung weiter.\n\nNach der Anmeldung können Sie:\n\n✅ Ihren Assistenten personalisieren\n✅ Ihre Preise und FAQ eintragen\n✅ Den Widget-Code für Ihre Website erhalten\n\n[Klicken Sie hier, um fortzufahren →](/register)",
           };
         } else {
           response = {
-            id: Date.now().toString() + "r",
+            id: generateId(),
             role: "assistant",
             content: "Kein Problem! Besuchen Sie unseren Marketplace, um alle verfügbaren Assistenten zu sehen.\n\n[Zum Marketplace →](/marketplace)",
           };
@@ -168,22 +177,22 @@ export function BuilderBot() {
 
       default:
         response = {
-          id: Date.now().toString() + "r",
+          id: generateId(),
           role: "assistant",
           content: "Wie kann ich Ihnen weiter helfen?",
         };
     }
 
     await simulateTyping(response);
-  };
+  }, [currentStep, agentConfig.industry, generateId, simulateTyping]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
     handleOptionSelect(input);
     setInput("");
-  };
+  }, [input, handleOptionSelect]);
 
   return (
     <div className="flex flex-col h-[600px] bg-white rounded-2xl shadow-xl border border-neutral-200 overflow-hidden">

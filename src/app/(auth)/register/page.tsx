@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { 
   Zap, Mail, Lock, User, Building2, ArrowRight, Eye, EyeOff, 
@@ -19,7 +18,6 @@ const isSupabaseConfigured = () => {
 };
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [supabaseReady, setSupabaseReady] = useState(true);
   
   const [formData, setFormData] = useState({

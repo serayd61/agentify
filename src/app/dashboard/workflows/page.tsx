@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   Play,
-  Pause,
   RefreshCw,
   CheckCircle2,
   XCircle,

@@ -8,9 +8,9 @@
 (function() {
   'use strict';
 
-  // Configuration
-  const WIDGET_BASE_URL = 'https://agentify.ch';
-  const API_BASE_URL = 'https://api.agentify.ch';
+  // Configuration (reserved for future API integration)
+  // const WIDGET_BASE_URL = 'https://agentify.ch';
+  // const API_BASE_URL = 'https://api.agentify.ch';
 
   // Get script element and config
   const script = document.currentScript;
@@ -437,7 +437,7 @@
         const response = responses[Math.floor(Math.random() * responses.length)];
         hideTyping();
         addMessage('assistant', response);
-      } catch (error) {
+      } catch (_error) {
         hideTyping();
         addMessage('assistant', 'Entschuldigung, es gab einen Fehler. Bitte versuchen Sie es erneut.');
       }

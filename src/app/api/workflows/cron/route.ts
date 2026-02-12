@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getScheduler, getMonitor } from '@/lib/workflows';
+import { getScheduler } from '@/lib/workflows';
 
 // Vercel Cron endpoint
 // This endpoint is called by Vercel's cron scheduler
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     }
 
     const scheduler = getScheduler();
-    const monitor = getMonitor();
+    // Monitor is available via getMonitor() if needed for metrics
 
     // Execute the job
     const result = await scheduler.handleCronRequest(jobId);

@@ -1,6 +1,6 @@
 // Task Executor - Handles execution of different task types
 
-import { TaskDefinition, TaskResult, TaskExecution, TaskStatus } from './types';
+import { TaskDefinition, TaskResult, TaskExecution } from './types';
 
 export class TaskExecutor {
   private environment: Record<string, string>;

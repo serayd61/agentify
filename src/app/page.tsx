@@ -26,7 +26,6 @@ import {
   Workflow,
   ChevronDown,
   Play,
-  Bot,
   Layers,
   Lock,
   Server,
@@ -51,20 +50,48 @@ const scaleIn = {
   visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const } },
 };
 
-// Floating orb animation
-const floatAnimation = {
-  animate: {
-    y: [0, -20, 0],
-    x: [0, 10, 0],
-    transition: {
-      duration: 8,
-      repeat: Infinity,
-      ease: "easeInOut" as const,
-    },
-  },
+// Generate stable particle positions (seeded by index)
+const generateParticleData = (count: number) => {
+  // Use deterministic values based on index for SSR consistency
+  return Array.from({ length: count }, (_, i) => ({
+    left: ((i * 37 + 13) % 100),
+    top: ((i * 53 + 7) % 100),
+    duration: 8 + (i % 5),
+    delay: (i % 6),
+  }));
 };
 
 // Trusted companies logos (placeholder)
+// Floating Particles Component - uses stable positions
+const PARTICLE_DATA = generateParticleData(20);
+
+function FloatingParticles() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {PARTICLE_DATA.map((particle, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-1 h-1 bg-white/20 rounded-full"
+          style={{
+            left: `${particle.left}%`,
+            top: `${particle.top}%`,
+          }}
+          animate={{
+            y: [0, -100, 0],
+            opacity: [0, 0.5, 0],
+          }}
+          transition={{
+            duration: particle.duration,
+            repeat: Infinity,
+            delay: particle.delay,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 const trustedCompanies = [
   "Swisscom", "UBS", "Novartis", "Roche", "ABB", "Nestlé", "Credit Suisse", "Zurich Insurance"
 ];
@@ -296,28 +323,7 @@ export default function HomePage() {
         />
 
         {/* Floating Particles */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(20)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-1 h-1 bg-white/20 rounded-full"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                y: [0, -100, 0],
-                opacity: [0, 0.5, 0],
-                transition: {
-                  duration: 8 + Math.random() * 4,
-                  repeat: Infinity,
-                  delay: Math.random() * 5,
-                  ease: "easeInOut" as const,
-                },
-              }}
-            />
-          ))}
-        </div>
+        <FloatingParticles />
 
         {/* Subtle Grid Pattern */}
         <div className="absolute inset-0 opacity-[0.03]" style={{ 

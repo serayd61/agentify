@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { MessageSquare, X, Send, Bot, Minimize2 } from "lucide-react";
+import { MessageSquare, X, Send, Minimize2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Message {

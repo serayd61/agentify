@@ -55,16 +55,12 @@ function DashboardContent() {
   const searchParams = useSearchParams();
   const checkoutSuccess = searchParams.get('checkout') === 'success';
   
-  const [user, setUser] = useState<User | null>(null);
+  const [, setUser] = useState<User | null>(null);
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [agents, setAgents] = useState<CustomerAgent[]>([]);
   const [loading, setLoading] = useState(true);
   const [portalLoading, setPortalLoading] = useState(false);
-
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
 
   const loadDashboardData = async () => {
     const supabase = getSupabaseBrowser();
@@ -118,6 +114,11 @@ function DashboardContent() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadDashboardData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSignOut = async () => {
     const supabase = getSupabaseBrowser();

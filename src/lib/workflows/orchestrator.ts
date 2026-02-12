@@ -4,8 +4,6 @@ import {
   WorkflowDefinition,
   WorkflowExecution,
   TaskDefinition,
-  TaskExecution,
-  ExecutionStatus,
   OrchestratorConfig,
 } from './types';
 import { TaskExecutor, createExecutor } from './executor';
@@ -163,7 +161,7 @@ export class WorkflowOrchestrator {
 
   private async executeCallbacks(
     callbackIds: string[],
-    execution: WorkflowExecution
+    _execution: WorkflowExecution
   ): Promise<void> {
     // Callbacks are task IDs to trigger
     // In a full implementation, these would be looked up and executed

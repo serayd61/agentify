@@ -191,7 +191,7 @@ export class WorkflowScheduler {
     }
 
     // For simplicity, just add appropriate interval
-    const [minute, hour, dayOfMonth, month, dayOfWeek] = parts;
+    const [minute, hour] = parts;
     
     const next = new Date(now);
     
