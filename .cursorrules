@@ -1,0 +1,71 @@
+## Frontend Design Skill
+
+### Aesthetic Guidelines
+When building frontend interfaces, AVOID generic "AI slop" aesthetics:
+- ❌ Inter, Roboto, Arial fonts
+- ❌ Purple gradients on white backgrounds
+- ❌ Minimal animations
+- ❌ Generic card layouts
+
+### Instead, USE:
+- ✅ **Typography**: Bold, distinctive fonts (e.g., Space Grotesk, Clash Display, Satoshi)
+- ✅ **Colors**: Cohesive dark themes with sharp accents, CSS variables for consistency
+- ✅ **Motion**: Meaningful animations with Framer Motion
+  - Staggered reveals on page load
+  - Hover states that surprise
+  - Scroll-triggered animations
+- ✅ **Backgrounds**: Atmospheric gradients, subtle patterns, depth
+
+### Design Process
+Before coding any frontend:
+1. **Purpose**: What problem does this interface solve?
+2. **Audience**: Who uses this? (Swiss SME owners = professional, trustworthy)
+3. **Aesthetic Direction**: Choose BOLD direction (dark/elegant for Agentify)
+4. **Key Moments**: Identify 3 high-impact interaction points
+
+### Agentify.ch Specific Design
+- Dark theme with accent colors per category
+- Professional Swiss aesthetic (clean, precise, trustworthy)
+- Motion: Subtle but polished (not playful)
+- Typography: Modern sans-serif, excellent readability
+- Cards: Depth with subtle shadows, hover lift effects
+- Icons: Lucide React, consistent sizing
+EOF
+```
+
+---
+
+## 🎯 Agentify.ch İçin Specific Prompt'lar
+
+### Homepage Redesign:
+```
+Redesign the Agentify.ch homepage with:
+- Dark theme (#0a0a0a background)
+- Hero section with animated gradient orbs
+- Agent category cards with hover lift effect and category-specific accent colors
+- Staggered fade-in animations on scroll
+- Professional Swiss aesthetic - clean, precise, trustworthy
+- Typography: Space Grotesk for headings, Inter for body (or suggest better)
+```
+
+### Agent Card Component:
+```
+Create a premium agent card component for Agentify marketplace:
+- Dark glass-morphism effect
+- Category icon with glow effect
+- Price badge (CHF)
+- Rating stars with micro-animation
+- "Popular" / "New" badges
+- Hover: subtle lift + border glow
+- Use Framer Motion for all animations
+```
+
+### Pricing Page:
+```
+Redesign pricing page with:
+- 3-tier pricing cards (Starter, Professional, Enterprise)
+- Annual/Monthly toggle with smooth transition
+- Most popular tier highlighted with glow effect
+- Feature comparison with checkmarks
+- Swiss-specific: CHF currency, MWST mention
+- CTA buttons with hover scale effect

@@ -1,36 +1,152 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🇨🇭 Agentify.ch - Swiss Agent Network Platform
 
-## Getting Started
+Die Schweizer Plattform für branchenspezifische KI-Assistenten. Automatisieren Sie Ihre Kundenanfragen mit vorkonfigurierten Agents für verschiedene Branchen.
 
-First, run the development server:
+![Agentify.ch](https://agentify.ch/og-image.png)
 
-```bash
+## 🚀 Features
+
+- **40+ Branchenspezifische Agents** - Treuhand, Handwerk, Gesundheit, Gastronomie und mehr
+- **Marketplace** - Durchsuchen und kaufen Sie fertige Agent-Templates
+- **Builder Bot** - Erstellen Sie Ihren eigenen Agent im Gespräch
+- **Dashboard** - Verwalten Sie Ihre Agents und sehen Sie Statistiken
+- **Embed Widget** - Ein Skript für Ihre Website
+- **Swiss Hosting** - DSG-konform, Daten in der Schweiz
+- **Multi-Channel** - Website, WhatsApp, E-Mail
+
+## 🛠️ Tech Stack
+
+- **Framework:** Next.js 14 (App Router)
+- **Sprache:** TypeScript
+- **Styling:** Tailwind CSS
+- **UI Components:** Radix UI
+- **Database:** Supabase (PostgreSQL)
+- **Auth:** Supabase Auth
+- **Payments:** Stripe
+- **AI:** OpenAI GPT-4
+- **Deployment:** Vercel
+
+## 📁 Projektstruktur
+
+\`\`\`
+agentify-ch/
+├── src/
+│   ├── app/                    # Next.js App Router
+│   │   ├── (auth)/            # Auth Seiten (Login, Register)
+│   │   ├── dashboard/         # Customer Dashboard
+│   │   ├── marketplace/       # Agent Marketplace
+│   │   │   └── [slug]/       # Agent Detail Seite
+│   │   ├── pricing/          # Pricing Seite
+│   │   └── page.tsx          # Landing Page
+│   ├── components/
+│   │   ├── ui/               # UI Komponenten (Button, Card, etc.)
+│   │   ├── layout/           # Layout Komponenten (Header, Footer)
+│   │   ├── builder/          # Builder Bot Komponenten
+│   │   └── widget/           # Chat Widget Komponenten
+│   ├── lib/
+│   │   ├── data/            # Statische Daten (Agents, Categories)
+│   │   └── utils.ts         # Utility Funktionen
+│   └── types/               # TypeScript Typen
+├── public/
+│   └── widget.js            # Embed Widget Script
+├── supabase/
+│   └── schema.sql           # Database Schema
+└── ...
+\`\`\`
+
+## 🚀 Installation
+
+### 1. Repository klonen
+
+\`\`\`bash
+git clone https://github.com/yourusername/agentify-ch.git
+cd agentify-ch
+\`\`\`
+
+### 2. Dependencies installieren
+
+\`\`\`bash
+npm install
+\`\`\`
+
+### 3. Umgebungsvariablen konfigurieren
+
+\`\`\`bash
+cp .env.example .env.local
+\`\`\`
+
+Dann die Variablen in \`.env.local\` ausfüllen.
+
+### 4. Supabase Setup
+
+1. Erstellen Sie ein Projekt auf [supabase.com](https://supabase.com)
+2. Führen Sie das Schema aus: \`supabase/schema.sql\`
+3. Kopieren Sie die URL und Keys in \`.env.local\`
+
+### 5. Development Server starten
+
+\`\`\`bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+\`\`\`
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Die App ist unter [http://localhost:3000](http://localhost:3000) erreichbar.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📱 Widget Integration
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Fügen Sie diesen Code auf Ihrer Website ein:
 
-## Learn More
+\`\`\`html
+<script 
+  src="https://cdn.agentify.ch/widget.js" 
+  data-agent-id="YOUR_AGENT_ID"
+  data-position="bottom-right"
+  data-color="#DC2626">
+</script>
+\`\`\`
 
-To learn more about Next.js, take a look at the following resources:
+## 💰 Preismodell
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Plan | Preis | Agents | Nachrichten |
+|------|-------|--------|-------------|
+| Starter | CHF 199/Mo | 1 | 2'500/Mo |
+| Business | CHF 399/Mo | 3 | 10'000/Mo |
+| Enterprise | CHF 899/Mo | Unbegrenzt | 50'000/Mo |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🔒 Sicherheit
 
-## Deploy on Vercel
+- Swiss Hosting (Daten in der Schweiz)
+- DSG-konform
+- DSGVO-ready
+- Ende-zu-Ende Verschlüsselung
+- SOC 2 Type II (Supabase)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📊 Unterstützte Branchen
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- 📊 Büro & Dienstleistungen (Treuhand, Anwalt, Steuerberater)
+- 🔧 Handwerk & Bau (Elektro, Sanitär, Maler, Schreiner)
+- 🏥 Gesundheit & Wellness (Arztpraxis, Zahnarzt, Physio)
+- 🍽️ Gastronomie & Hotellerie (Restaurant, Hotel, Café)
+- 🏠 Immobilien & Verwaltung
+- 🚗 Auto & Mobilität
+- 💻 Tech & Digital
+- 🛒 Handel & Retail
+- 📚 Bildung & Kurse
+
+## 🛣️ Roadmap
+
+- [ ] WhatsApp Business Integration
+- [ ] Voice-to-Text Support
+- [ ] Multi-Tenant Dashboard
+- [ ] Custom Agent Training
+- [ ] API für Entwickler
+- [ ] Mobile App
+
+## 📄 Lizenz
+
+Proprietary - © 2024 Agentify.ch
+
+## 🤝 Kontakt
+
+- **Email:** kontakt@agentify.ch
+- **Website:** [agentify.ch](https://agentify.ch)
+- **Support:** support@agentify.ch

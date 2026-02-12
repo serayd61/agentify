@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/workflows/cron?job=cleanup-expired-sessions",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/workflows/cron?job=aggregate-analytics",
+      "schedule": "0 0 * * 1"
+    },
+    {
+      "path": "/api/workflows/cron?job=subscription-renewal-check",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/workflows/cron?job=agent-health-check",
+      "schedule": "0 * * * *"
+    }
+  ]
+}

@@ -1,0 +1,166 @@
+"use client";
+
+import React from "react";
+import Link from "next/link";
+import { Sparkles, ArrowRight, Shield, CheckCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+const footerLinks = {
+  links: {
+    title: "Links",
+    items: [
+      { name: "Über uns", href: "/about" },
+      { name: "Support", href: "/support" },
+      { name: "Referenzen", href: "/testimonials" },
+      { name: "Karriere", href: "/careers" },
+      { name: "Kontakt", href: "/contact" },
+      { name: "Nutzungsbedingungen", href: "/terms" },
+    ],
+  },
+  product: {
+    title: "Produkt",
+    items: [
+      { name: "KI-Wissensmanagement", href: "/knowledge" },
+      { name: "Enterprise Intelligence", href: "/enterprise" },
+      { name: "Blog", href: "/blog" },
+      { name: "Cookies", href: "/cookies" },
+    ],
+  },
+  alternatives: {
+    title: "Alternativen",
+    items: [
+      { name: "vs Glean", href: "/compare/glean" },
+      { name: "vs Notion AI", href: "/compare/notion" },
+      { name: "vs ChatGPT Enterprise", href: "/compare/chatgpt" },
+    ],
+  },
+};
+
+const securityBadges = [
+  { name: "SOC 2 Type 2", icon: Shield },
+  { name: "DSGVO-konform", icon: CheckCircle },
+  { name: "CASA Tier 2", icon: Shield },
+];
+
+export function Footer() {
+  return (
+    <footer className="relative bg-[#030308] border-t border-white/[0.06] mt-auto">
+      {/* Gradient Line */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#8b5cf6]/50 to-transparent" />
+
+      {/* CTA Section */}
+      <div className="container py-16">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-8 p-8 bg-gradient-to-r from-[#8b5cf6]/10 to-[#3b82f6]/5 rounded-2xl border border-[#8b5cf6]/20">
+          <div>
+            <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">
+              Mehr erreichen mit Agentify.
+            </h3>
+            <p className="text-white/50">
+              Starten Sie noch heute Ihre kostenlose Testversion und erleben Sie den Unterschied.
+            </p>
+          </div>
+          <div className="flex items-center gap-4">
+            <Button variant="outline" asChild>
+              <Link href="/capabilities">Mehr erfahren</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/register">
+                Agentify starten
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Footer */}
+      <div className="container pb-16">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-10 lg:gap-12">
+          {/* Brand Column */}
+          <div className="col-span-2">
+            <Link href="/" className="flex items-center gap-2.5 mb-6">
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#8b5cf6] to-[#6366f1] flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-bold text-white tracking-tight">
+                Agentify
+              </span>
+            </Link>
+            <p className="text-sm text-white/40 mb-6 max-w-xs leading-relaxed">
+              Arbeit, die zählt. Enterprise KI, die Ihr Unternehmen wirklich versteht.
+            </p>
+            
+            {/* Security Badges */}
+            <div className="flex flex-wrap gap-3">
+              {securityBadges.map((badge) => (
+                <div
+                  key={badge.name}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-[#0a0a12] rounded-lg border border-white/5 text-xs text-white/50"
+                >
+                  <badge.icon className="w-3.5 h-3.5 text-[#8b5cf6]" />
+                  {badge.name}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Link Columns */}
+          {Object.values(footerLinks).map((section) => (
+            <div key={section.title}>
+              <h4 className="text-sm font-semibold text-white/80 mb-5">
+                {section.title}
+              </h4>
+              <ul className="space-y-3">
+                {section.items.map((link) => (
+                  <li key={link.name}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-white/40 hover:text-white transition-colors"
+                    >
+                      {link.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Bottom Bar */}
+      <div className="border-t border-white/[0.06]">
+        <div className="container py-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-6 text-sm text-white/30">
+              <span>Agentify ist eine Marke der Agentify AG</span>
+            </div>
+            <div className="flex items-center gap-6">
+              <Link
+                href="/privacy"
+                className="text-white/30 hover:text-white transition-colors text-sm"
+              >
+                Datenschutz
+              </Link>
+              <a
+                href="https://linkedin.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white/30 hover:text-white transition-colors text-sm"
+              >
+                LinkedIn
+              </a>
+              <a
+                href="https://twitter.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white/30 hover:text-white transition-colors text-sm"
+              >
+                Twitter
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
