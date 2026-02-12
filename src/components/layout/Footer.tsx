@@ -5,33 +5,40 @@ import Link from "next/link";
 import { Sparkles, ArrowRight, Shield, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const footerLinks = {
-  links: {
-    title: "Links",
+interface FooterLink {
+  name: string;
+  href: string;
+  external?: boolean;
+}
+
+interface FooterSection {
+  title: string;
+  items: FooterLink[];
+}
+
+const footerLinks: Record<string, FooterSection> = {
+  unternehmen: {
+    title: "Unternehmen",
     items: [
-      { name: "Über uns", href: "/about" },
-      { name: "Support", href: "/support" },
-      { name: "Referenzen", href: "/testimonials" },
-      { name: "Karriere", href: "/careers" },
+      { name: "Über uns", href: "https://swissdigital.life", external: true },
       { name: "Kontakt", href: "/contact" },
-      { name: "Nutzungsbedingungen", href: "/terms" },
+      { name: "Support", href: "/support" },
     ],
   },
-  product: {
+  produkt: {
     title: "Produkt",
     items: [
-      { name: "KI-Wissensmanagement", href: "/knowledge" },
-      { name: "Enterprise Intelligence", href: "/enterprise" },
-      { name: "Blog", href: "/blog" },
-      { name: "Cookies", href: "/cookies" },
+      { name: "Marketplace", href: "/marketplace" },
+      { name: "Preise", href: "/pricing" },
+      { name: "Funktionen", href: "/capabilities" },
     ],
   },
-  alternatives: {
-    title: "Alternativen",
+  rechtliches: {
+    title: "Rechtliches",
     items: [
-      { name: "vs Glean", href: "/compare/glean" },
-      { name: "vs Notion AI", href: "/compare/notion" },
-      { name: "vs ChatGPT Enterprise", href: "/compare/chatgpt" },
+      { name: "Impressum", href: "/impressum" },
+      { name: "Datenschutz", href: "/privacy" },
+      { name: "AGB", href: "/terms" },
     ],
   },
 };
@@ -113,12 +120,23 @@ export function Footer() {
               <ul className="space-y-3">
                 {section.items.map((link) => (
                   <li key={link.name}>
-                    <Link
-                      href={link.href}
-                      className="text-sm text-white/40 hover:text-white transition-colors"
-                    >
-                      {link.name}
-                    </Link>
+                    {link.external ? (
+                      <a
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-white/40 hover:text-white transition-colors"
+                      >
+                        {link.name}
+                      </a>
+                    ) : (
+                      <Link
+                        href={link.href}
+                        className="text-sm text-white/40 hover:text-white transition-colors"
+                      >
+                        {link.name}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
