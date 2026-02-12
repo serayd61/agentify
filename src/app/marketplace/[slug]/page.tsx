@@ -56,6 +56,69 @@ export default function AgentDetailPage() {
     .filter((a) => a.id !== agent.id)
     .slice(0, 2);
 
+  // Agent-specific demo responses
+  const getDemoResponse = (userMessage: string): string => {
+    const lowerMsg = userMessage.toLowerCase();
+    
+    // Agent-specific responses based on category
+    const responses: Record<string, Record<string, string>> = {
+      treuhand: {
+        mwst: "Die nächste MWST-Abrechnung ist am 30. des Monats fällig. Für die Quartalsabrechnung benötigen Sie: Rechnungen, Belege und Bankkontoauszüge. Soll ich Ihnen eine Checkliste zusenden?",
+        steuer: "Für die Steuererklärung 2024 benötigen Sie: Lohnausweis, Zinsbelege, Versicherungsprämien, Spendenbescheinigungen. Die Frist im Kanton Zürich ist der 31. März.",
+        termin: "Gerne vereinbare ich einen Beratungstermin. Wir haben diese Woche noch Termine am Mittwoch 14:00 oder Freitag 10:00 frei. Welcher passt Ihnen besser?",
+        default: "Ich bin Ihr Treuhand-Assistent und helfe bei MWST-Fragen, Buchhaltung und Steuerthemen. Was möchten Sie wissen?",
+      },
+      zahnarzt: {
+        schmerz: "Bei akuten Zahnschmerzen sollten Sie uns direkt anrufen unter 044 XXX XX XX. Wir haben heute noch einen Notfalltermin um 16:30 frei. Soll ich Sie eintragen?",
+        termin: "Für eine Kontrolle haben wir folgende freie Termine: Montag 9:00, Mittwoch 14:00 oder Freitag 11:00. Welcher passt Ihnen?",
+        kosten: "Eine professionelle Zahnreinigung kostet CHF 180-220. Eine Krone liegt bei CHF 1'200-1'800 je nach Material. Für einen genauen Kostenvoranschlag vereinbaren Sie am besten einen Termin.",
+        default: "Willkommen in unserer Zahnarztpraxis! Ich kann Termine buchen, Kosten nennen oder bei Notfällen weiterhelfen. Wie kann ich Ihnen helfen?",
+      },
+      coiffeur: {
+        termin: "Gerne! Für Schneiden und Föhnen haben wir heute um 15:00 oder morgen um 10:30 noch Plätze frei. Bei welcher Stylistin möchten Sie den Termin?",
+        preis: "Unsere Preise: Damenschnitt CHF 75-95, Herrenschnitt CHF 45-55, Färben ab CHF 120, Balayage ab CHF 180. Kann ich einen Termin für Sie buchen?",
+        farbe: "Für eine Farbberatung empfehle ich einen Termin bei unserer Coloristin Sarah. Sie berät Sie zu Balayage, Strähnchen oder Komplettfärbung. Wann passt es Ihnen?",
+        default: "Willkommen im Salon! Ich helfe Ihnen bei Terminbuchungen, Preisauskünften und Styling-Beratung. Was darf es sein?",
+      },
+      restaurant: {
+        reserv: "Gerne reserviere ich für Sie! Für wie viele Personen und wann möchten Sie kommen? Am Wochenende empfehle ich eine Reservierung mindestens 2 Tage im Voraus.",
+        menu: "Unser Tagesmenü heute: Vorspeise - Kürbissuppe, Hauptgang - Zürcher Geschnetzeltes mit Rösti, Dessert - Vermicelles. CHF 42.- inkl. Kaffee.",
+        allergie: "Wir bieten glutenfreie, laktosefreie und vegane Optionen. Bitte teilen Sie uns Ihre Allergien bei der Reservierung mit, damit die Küche vorbereitet ist.",
+        default: "Grüezi und willkommen! Ich helfe bei Tischreservierungen, Menüfragen und Gruppenanfragen. Was darf ich für Sie tun?",
+      },
+      elektro: {
+        notfall: "Bei einem Stromausfall oder Notfall erreichen Sie unseren Pikettdienst unter 079 XXX XX XX. Ist es ein akuter Notfall?",
+        preis: "Richtpreise: Steckdose installieren CHF 150-200, Sicherungskasten CHF 800-1'500, Smart Home Beratung kostenlos. Für eine genaue Offerte brauche ich mehr Details.",
+        smart: "Smart Home ist unser Spezialgebiet! Wir beraten zu Licht, Heizung, Storen und Sicherheit. Soll ich einen kostenlosen Beratungstermin vereinbaren?",
+        default: "Grüezi! Ich bin der Assistent von Elektro Service. Ich helfe bei Preisanfragen, Terminvereinbarungen und Notfällen. Wie kann ich helfen?",
+      },
+    };
+
+    // Find matching category responses
+    const categoryKey = agent?.categorySlug || "";
+    const categoryResponses = responses[categoryKey] || responses[agent?.id || ""] || {};
+    
+    // Check for keyword matches
+    for (const [keyword, response] of Object.entries(categoryResponses)) {
+      if (keyword !== "default" && lowerMsg.includes(keyword)) {
+        return response;
+      }
+    }
+    
+    // Check common keywords across all agents
+    if (lowerMsg.includes("termin") || lowerMsg.includes("buchen")) {
+      return categoryResponses.termin || "Gerne vereinbare ich einen Termin für Sie. Wann würde es Ihnen passen?";
+    }
+    if (lowerMsg.includes("preis") || lowerMsg.includes("kosten") || lowerMsg.includes("was kostet")) {
+      return categoryResponses.preis || categoryResponses.kosten || "Für eine genaue Preisauskunft benötige ich mehr Details. Was genau benötigen Sie?";
+    }
+    if (lowerMsg.includes("notfall") || lowerMsg.includes("dringend") || lowerMsg.includes("sofort")) {
+      return categoryResponses.notfall || "Bei Notfällen erreichen Sie uns telefonisch. Ich leite Ihre Anfrage sofort weiter.";
+    }
+    
+    return categoryResponses.default || `Vielen Dank für Ihre Anfrage! Ich bin der ${agent?.name} und helfe Ihnen gerne weiter. Können Sie mir mehr Details geben?`;
+  };
+
   const handleDemoSend = () => {
     if (!demoInput.trim()) return;
     const userMessage = demoInput;
@@ -64,19 +127,32 @@ export default function AgentDetailPage() {
     setIsTyping(true);
 
     setTimeout(() => {
+      const response = getDemoResponse(userMessage);
       setDemoMessages((prev) => [...prev, { 
         role: "assistant", 
-        content: `Vielen Dank für Ihre Anfrage! Ich helfe Ihnen gerne weiter.` 
+        content: response
       }]);
       setIsTyping(false);
-    }, 1200);
+    }, 1000 + Math.random() * 500);
   };
 
   const startDemo = () => {
     setShowDemo(true);
+    // Agent-specific welcome messages
+    const welcomeMessages: Record<string, string> = {
+      treuhand: "Grüezi! Ich bin der Treuhand-Assistent. Ich helfe Ihnen bei Fragen zu MWST, Steuern und Buchhaltung. Wie kann ich Ihnen helfen?",
+      zahnarzt: "Grüezi! Willkommen in unserer Zahnarztpraxis. Ich kann Termine buchen, Kosten nennen oder bei Zahnschmerzen weiterhelfen. Was darf es sein?",
+      coiffeur: "Grüezi! Willkommen im Salon. Ich helfe bei Terminbuchungen und Preisauskünften. Für welche Behandlung interessieren Sie sich?",
+      restaurant: "Grüezi! Willkommen in unserem Restaurant. Möchten Sie einen Tisch reservieren oder haben Sie Fragen zum Menü?",
+      elektro: "Grüezi! Ich bin der Assistent von Elektro Service. Brauchen Sie einen Elektriker, haben Sie Fragen zu Smart Home oder ist es ein Notfall?",
+    };
+    
+    const welcomeMsg = welcomeMessages[agent?.id || ""] || welcomeMessages[agent?.categorySlug || ""] || 
+      `Grüezi! Ich bin der ${agent?.name}. Wie kann ich Ihnen helfen?`;
+    
     setDemoMessages([{
       role: "assistant",
-      content: `Grüezi! Wie kann ich Ihnen helfen?`,
+      content: welcomeMsg,
     }]);
   };
 
@@ -277,6 +353,27 @@ export default function AgentDetailPage() {
                 </div>
               )}
             </div>
+
+            {/* Quick Questions */}
+            {agent.demoQuestions && agent.demoQuestions.length > 0 && demoMessages.length <= 2 && (
+              <div className="px-4 py-3 bg-[#0d0d14] border-t border-white/[0.06]">
+                <p className="text-xs text-white/40 mb-2">Probieren Sie:</p>
+                <div className="flex flex-wrap gap-2">
+                  {agent.demoQuestions.slice(0, 3).map((q, i) => (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        setDemoInput(q);
+                        setTimeout(() => handleDemoSend(), 100);
+                      }}
+                      className="px-3 py-1.5 bg-[#1a1a28] hover:bg-[#252536] rounded-full text-xs text-white/60 hover:text-white transition-colors"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Input */}
             <div className="p-4 bg-[#12121c] border-t border-white/[0.06]">

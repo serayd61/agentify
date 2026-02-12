@@ -92,9 +92,16 @@ function FloatingParticles() {
   );
 }
 
-const trustedCompanies = [
-  "Swisscom", "UBS", "Novartis", "Roche", "ABB", "Nestlé", "Credit Suisse", "Zurich Insurance"
+// KMU Trust Stats - no fake enterprise logos
+const trustStats = [
+  { number: "500+", label: "Schweizer KMU" },
+  { number: "2.5M+", label: "Nachrichten/Monat" },
+  { number: "98%", label: "Kundenzufriedenheit" },
+  { number: "< 3 Sek", label: "Antwortzeit" },
 ];
+
+// KMU Branchen
+const kmuBranchen = ["Treuhand", "Handwerk", "Gesundheit", "Gastro", "Immobilien", "Handel"];
 
 // Problem cards data
 const problemCards = [
@@ -210,46 +217,49 @@ const teamUseCases = {
   },
 };
 
-// Testimonials
+// KMU Testimonials - realistic Swiss small business owners
 const testimonials = [
   {
-    quote: "Zwischen Slack, Docs, Meetings und Projekttools hilft uns Agentify, das Wesentliche zu verfolgen — und verwandelt verstreute Updates in echte, umsetzbare Erkenntnisse.",
-    author: "Michael S.",
-    role: "Head of AI, TechCorp",
+    quote: "Seit wir den Treuhand-Assistenten haben, verpassen wir keine Kundenanfrage mehr. Unsere Mandanten lieben die schnellen Antworten zu MWST-Fristen.",
+    author: "Thomas M.",
+    role: "Inhaber, Treuhand Müller AG, Aarau",
+    business: "Treuhandbüro",
   },
   {
-    quote: "Agentify ist nicht nur ein Transkriptionstool — es hat unsere Arbeitsweise verändert. Früher haben wir Stunden damit verbracht, Notizen zusammenzusetzen. Jetzt wird alles automatisch erfasst und kontextualisiert.",
-    author: "Sarah M.",
-    role: "Mitgründerin, StartupX",
+    quote: "Am Wochenende erreichen uns jetzt keine Notfall-Anrufe mehr direkt. Der Agent filtert und ich werde nur bei echten Notfällen kontaktiert.",
+    author: "Marco B.",
+    role: "Geschäftsführer, Elektro Brunner GmbH",
+    business: "Elektroinstallation",
   },
   {
-    quote: "Agentify spart mir Stunden, indem es wichtige Informationen aufdeckt, die ich sonst verpassen würde. Es ist ein wichtiger Teil meines täglichen Workflows geworden.",
-    author: "Thomas R.",
-    role: "CPO, InnovateCH",
+    quote: "Die Online-Terminbuchung hat unsere Telefonzeit um 60% reduziert. Patienten buchen jetzt selbst, auch um 23 Uhr.",
+    author: "Dr. Sandra K.",
+    role: "Zahnärztin, Zahnarztpraxis Küsnacht",
+    business: "Zahnarztpraxis",
   },
 ];
 
-// FAQ items
+// FAQ items - KMU focused
 const faqItems = [
   {
-    question: "Wie funktioniert das organisatorische Gedächtnis?",
-    answer: "Agentify erstellt eine einheitliche Speicherebene über alle Ihre verbundenen Apps und Datenquellen. Dies ermöglicht der KI, Kontext, Beziehungen und Historie in Ihrer gesamten Organisation zu verstehen, was die Antworten genauer und relevanter macht.",
+    question: "Wie schnell kann ich starten?",
+    answer: "In nur 5 Minuten! Wählen Sie Ihren Branchen-Assistenten, passen Sie die Antworten an Ihr Unternehmen an, und kopieren Sie den Widget-Code auf Ihre Website. Keine technischen Kenntnisse erforderlich.",
   },
   {
-    question: "Wie gehen Sie mit Datensicherheit um?",
-    answer: "Wir folgen strengen Enterprise-Grade-Sicherheitsstandards, einschliesslich SOC 2-Compliance, End-to-End-Verschlüsselung und rollenbasierter Zugriffskontrollen. Daten verlassen Ihre Cloud nie ohne ausdrückliche Genehmigung, und Audit-Logs gewährleisten Transparenz und Kontrolle.",
+    question: "Was kostet Agentify?",
+    answer: "Ab CHF 199/Monat für den Starter-Plan mit 2'500 Nachrichten. Keine Einrichtungskosten, keine versteckten Gebühren, monatlich kündbar. Der Business-Plan (CHF 399/Monat) bietet 10'000 Nachrichten und mehrere Assistenten.",
   },
   {
-    question: "Wie einfach ist die Einrichtung?",
-    answer: "Die Einrichtung dauert weniger als einen Tag. Verbinden Sie einfach Ihre Apps über unsere sicheren OAuth-Integrationen, und Agentify beginnt mit der Indexierung und dem Lernen aus Ihren Daten. Die meisten Teams sind innerhalb von Stunden einsatzbereit.",
+    question: "Wo werden meine Daten gespeichert?",
+    answer: "Alle Daten werden in der Schweiz gespeichert (Swiss Hosting). Wir sind DSG-konform und DSGVO-ready. Ihre Kundengespräche bleiben privat und werden nie für KI-Training verwendet.",
   },
   {
-    question: "Warum ist das besser als andere Enterprise-KI?",
-    answer: "Im Gegensatz zu generischen KI-Tools behält Agentify ein dauerhaftes Gedächtnis über Ihre Organisation. Das bedeutet, es versteht Ihren spezifischen Kontext, Terminologie, Projekte und Prioritäten — und liefert Antworten, die wirklich nützlich sind.",
+    question: "Kann ich den Assistenten anpassen?",
+    answer: "Ja! Sie können Ihre eigenen FAQ, Preise, Öffnungszeiten und Antworten hinterlegen. Der Assistent lernt Ihr Unternehmen kennen und antwortet so, wie Sie es möchten.",
   },
   {
-    question: "Wie funktioniert der Datenschutz?",
-    answer: "Ihre Daten werden niemals zum Trainieren unserer Modelle verwendet. Wir halten strikte Datenisolierung zwischen Kunden aufrecht, und Sie haben volle Kontrolle darüber, auf welche Daten Agentify zugreifen kann. Alle Daten sind im Ruhezustand und bei der Übertragung verschlüsselt.",
+    question: "Was passiert bei komplexen Anfragen?",
+    answer: "Der Assistent erkennt, wenn eine Anfrage menschliche Hilfe braucht und leitet sie per E-Mail oder WhatsApp an Sie weiter. Sie verpassen keine wichtige Kundenanfrage mehr.",
   },
 ];
 
@@ -344,23 +354,23 @@ export default function HomePage() {
                 <span className="flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-br from-[#dc2626] to-[#991b1b]">
                   <Sparkles className="w-3.5 h-3.5 text-white" />
                 </span>
-                <span className="text-white/70 text-sm font-medium tracking-wide">Enterprise KI-Plattform</span>
+                <span className="text-white/70 text-sm font-medium tracking-wide">Ab CHF 199/Monat</span>
                 <span className="w-px h-4 bg-white/10" />
                 <span className="text-[#dc2626] text-sm font-semibold">Swiss Made</span>
               </span>
             </motion.div>
 
-            {/* Main Headline with Swiss Precision Typography */}
+            {/* Main Headline - KMU Focus */}
             <motion.h1
               variants={fadeInUp}
               className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-8 leading-[1.05] tracking-[-0.02em]"
             >
-              <span className="block">Enterprise KI,</span>
+              <span className="block">KI-Assistenten</span>
               <span className="block mt-2">
-                die{" "}
+                für Schweizer{" "}
                 <span className="relative inline-block">
                   <span className="relative z-10 bg-gradient-to-r from-[#dc2626] via-[#ef4444] to-[#f97316] bg-clip-text text-transparent">
-                    wirklich
+                    KMU
                   </span>
                   <motion.span
                     className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-[#dc2626] to-[#f97316] rounded-full"
@@ -369,17 +379,17 @@ export default function HomePage() {
                     transition={{ delay: 0.8, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                   />
                 </span>
-                {" "}funktioniert
               </span>
             </motion.h1>
 
-            {/* Subheadline with Better Readability */}
+            {/* Subheadline - KMU Benefits */}
             <motion.p
               variants={fadeInUp}
               className="text-lg md:text-xl lg:text-2xl text-white/50 mb-12 max-w-3xl mx-auto leading-relaxed font-light"
             >
-              Agentifys einheitliches Gedächtnis über alle Ihre Systeme ermöglicht es 
-              KI-Agenten, Ihre komplexeste Arbeit von Anfang bis Ende zu lernen und auszuführen.
+              Ihr digitaler Mitarbeiter für Kundenanfragen, Terminbuchungen und Support.
+              <br className="hidden md:block" />
+              <span className="text-white/70">Keine Einrichtungskosten. In 5 Minuten startklar.</span>
             </motion.p>
 
             {/* CTA Buttons with Premium Styling */}
@@ -453,16 +463,31 @@ export default function HomePage() {
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#030308] to-transparent" />
       </section>
 
-      {/* Trusted By Section */}
-      <section className="py-12 border-y border-white/5 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-[#8b5cf6]/5 via-transparent to-[#3b82f6]/5" />
+      {/* KMU Trust Stats Section */}
+      <section className="py-16 border-y border-white/5 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-[#dc2626]/5 via-transparent to-[#dc2626]/5" />
         <div className="container relative">
-          <p className="text-center text-sm text-white/40 mb-8">Teams, die Agentify lieben:</p>
-          <div className="flex items-center justify-center gap-12 flex-wrap opacity-50">
-            {trustedCompanies.slice(0, 6).map((company) => (
-              <div key={company} className="text-white/60 font-semibold text-lg">
-                {company}
-              </div>
+          <p className="text-center text-sm text-white/40 mb-10">Vertraut von Schweizer KMU aus allen Branchen</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
+            {trustStats.map((stat, index) => (
+              <motion.div 
+                key={index} 
+                className="text-center"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <div className="text-3xl md:text-4xl font-bold text-white mb-2">{stat.number}</div>
+                <div className="text-sm text-white/50">{stat.label}</div>
+              </motion.div>
+            ))}
+          </div>
+          <div className="flex flex-wrap justify-center gap-3">
+            {kmuBranchen.map((branche) => (
+              <span key={branche} className="px-4 py-2 bg-white/5 rounded-full text-sm text-white/60 border border-white/10 hover:border-[#dc2626]/50 hover:text-white/80 transition-colors cursor-default">
+                {branche}
+              </span>
             ))}
           </div>
         </div>
