@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Header } from "@/components/layout/Header";
@@ -18,6 +18,9 @@ import {
   Sparkles,
   Phone,
   FileText,
+  Send,
+  Bot,
+  User,
 } from "lucide-react";
 
 // Animation variants
@@ -132,6 +135,137 @@ const faqItems = [
   },
 ];
 
+// Demo Chat Component
+function DemoChat() {
+  const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([
+    { role: "assistant", content: "Grüezi! Ich bin der Treuhand-Assistent. Wie kann ich Ihnen helfen?" },
+  ]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const sendMessage = async () => {
+    if (!input.trim() || isLoading) return;
+
+    const userMessage = input.trim();
+    setInput("");
+    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agentId: "treuhand-agent",
+          message: userMessage,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setMessages((prev) => [...prev, { role: "assistant", content: data.response }]);
+      } else {
+        setMessages((prev) => [...prev, { role: "assistant", content: "Entschuldigung, es gab einen Fehler." }]);
+      }
+    } catch {
+      setMessages((prev) => [...prev, { role: "assistant", content: "Entschuldigung, der Service ist momentan nicht erreichbar." }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const quickQuestions = [
+    "MWST-Sätze?",
+    "Termin buchen",
+    "Buchhaltung",
+  ];
+
+  return (
+    <div className="bg-[#0a0a12] rounded-2xl border border-white/10 overflow-hidden max-w-md mx-auto">
+      {/* Header */}
+      <div className="bg-[#dc2626] px-4 py-3 flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+          <span className="text-xl">📊</span>
+        </div>
+        <div>
+          <h4 className="text-white font-semibold text-sm">Treuhand-Assistent</h4>
+          <p className="text-white/70 text-xs">Online • Demo</p>
+        </div>
+      </div>
+
+      {/* Messages */}
+      <div className="h-80 overflow-y-auto p-4 space-y-3">
+        {messages.map((msg, i) => (
+          <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+            <div className={`flex items-start gap-2 max-w-[85%] ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
+                msg.role === "user" ? "bg-[#dc2626]" : "bg-white/10"
+              }`}>
+                {msg.role === "user" ? <User className="w-4 h-4 text-white" /> : <Bot className="w-4 h-4 text-white" />}
+              </div>
+              <div className={`px-3 py-2 rounded-xl text-sm ${
+                msg.role === "user"
+                  ? "bg-[#dc2626] text-white rounded-tr-none"
+                  : "bg-white/5 text-white/80 border border-white/10 rounded-tl-none"
+              }`}>
+                {msg.content}
+              </div>
+            </div>
+          </div>
+        ))}
+        {isLoading && (
+          <div className="flex justify-start">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center">
+                <Bot className="w-4 h-4 text-white" />
+              </div>
+              <div className="px-3 py-2 bg-white/5 border border-white/10 rounded-xl rounded-tl-none">
+                <div className="flex gap-1">
+                  <span className="w-2 h-2 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <span className="w-2 h-2 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <span className="w-2 h-2 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Quick Questions */}
+      <div className="px-4 pb-2 flex gap-2 flex-wrap">
+        {quickQuestions.map((q) => (
+          <button
+            key={q}
+            onClick={() => { setInput(q); }}
+            className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs text-white/60 hover:text-white hover:border-white/20 transition-all"
+          >
+            {q}
+          </button>
+        ))}
+      </div>
+
+      {/* Input */}
+      <div className="p-3 border-t border-white/10 flex gap-2">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+          placeholder="Nachricht eingeben..."
+          className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-[#dc2626]/50"
+        />
+        <button
+          onClick={sendMessage}
+          disabled={isLoading || !input.trim()}
+          className="px-3 py-2 bg-[#dc2626] hover:bg-[#b91c1c] disabled:opacity-50 rounded-lg transition-colors"
+        >
+          <Send className="w-4 h-4 text-white" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-[#030308] flex flex-col">
@@ -241,6 +375,46 @@ export default function HomePage() {
                 </Link>
               ))}
             </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ============================================ */}
+      {/* LIVE DEMO SECTION */}
+      {/* ============================================ */}
+      <section className="py-24 relative overflow-hidden">
+        {/* Background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#dc2626]/5 to-transparent" />
+        
+        <div className="container relative z-10">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+          >
+            {/* Section Header */}
+            <motion.div variants={fadeInUp} className="text-center mb-12">
+              <span className="text-[#dc2626] text-sm font-semibold uppercase tracking-wider mb-4 block">
+                Live Demo
+              </span>
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                Testen Sie den Treuhand-Assistenten
+              </h2>
+              <p className="text-white/50 max-w-2xl mx-auto">
+                Stellen Sie Fragen zu MWST, Buchhaltung oder Terminen – der Assistent antwortet sofort.
+              </p>
+            </motion.div>
+
+            {/* Demo Chat */}
+            <motion.div variants={fadeInUp}>
+              <DemoChat />
+            </motion.div>
+
+            {/* Demo Note */}
+            <motion.p variants={fadeInUp} className="text-center text-white/40 text-sm mt-6">
+              Dies ist eine Live-Demo mit echtem KI-Backend. Probieren Sie es aus!
+            </motion.p>
           </motion.div>
         </div>
       </section>
