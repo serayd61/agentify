@@ -194,6 +194,80 @@ async function getFallbackResponse(skillName: string, userMessage: string): Prom
     };
   }
 
+  // Gesundheit/Praxis-specific fallback responses
+  if (skillName === 'gesundheit-agent') {
+    // Termin questions
+    if (lowerMessage.includes('termin') || lowerMessage.includes('buchen') || lowerMessage.includes('anmelden')) {
+      return {
+        response: 'Gerne helfe ich Ihnen bei der Terminbuchung.\n\n📅 Verfügbare Termine diese Woche:\n• Montag 14:00, 15:30\n• Dienstag 09:00, 11:00\n• Mittwoch 10:00, 14:30\n\nWelcher Termin passt Ihnen am besten?',
+        suggestedActions: ['montag', 'dienstag', 'mittwoch'],
+        confidence: 0.9,
+      };
+    }
+
+    // Öffnungszeiten
+    if (lowerMessage.includes('öffnungszeit') || lowerMessage.includes('offen') || lowerMessage.includes('geöffnet')) {
+      return {
+        response: 'Unsere Öffnungszeiten:\n\n🕐 Montag - Freitag: 08:00 - 18:00\n🕐 Samstag: 09:00 - 12:00\n🚫 Sonntag: Geschlossen\n\nFür Notfälle ausserhalb der Öffnungszeiten: 0800 123 456',
+        suggestedActions: ['termin_buchen', 'notfall'],
+        confidence: 0.95,
+      };
+    }
+
+    // Notfall
+    if (lowerMessage.includes('notfall') || lowerMessage.includes('dringend') || lowerMessage.includes('schmerz')) {
+      return {
+        response: '🚨 Bei einem medizinischen Notfall:\n\n• Notfall-Hotline: 144\n• Unsere Notfall-Nummer: 0800 123 456\n• Nächste Notaufnahme: Universitätsspital\n\nBitte schildern Sie kurz Ihre Symptome, damit wir Sie optimal beraten können.',
+        suggestedActions: ['anrufen', 'symptome_beschreiben'],
+        confidence: 0.95,
+      };
+    }
+
+    // Default Gesundheit response
+    return {
+      response: 'Grüezi! Willkommen in unserer Praxis. Ich kann Ihnen helfen bei:\n\n• 📅 Terminbuchung\n• 🕐 Öffnungszeiten\n• 🚨 Notfall-Informationen\n• ❓ Allgemeine Fragen\n\nWie kann ich Ihnen behilflich sein?',
+      suggestedActions: ['termin', 'öffnungszeiten', 'notfall'],
+      confidence: 0.7,
+    };
+  }
+
+  // Gastro/Restaurant-specific fallback responses
+  if (skillName === 'gastro-agent') {
+    // Reservation
+    if (lowerMessage.includes('reserv') || lowerMessage.includes('tisch') || lowerMessage.includes('buchen')) {
+      return {
+        response: 'Gerne nehme ich Ihre Tischreservierung entgegen.\n\n🍽️ Bitte teilen Sie mir mit:\n• Datum und Uhrzeit\n• Anzahl Personen\n• Besondere Wünsche (Terrasse, etc.)\n\nWir haben heute noch freie Tische um 18:00, 19:30 und 21:00 Uhr.',
+        suggestedActions: ['18_uhr', '19_30_uhr', '21_uhr'],
+        confidence: 0.9,
+      };
+    }
+
+    // Speisekarte/Menu
+    if (lowerMessage.includes('speisekarte') || lowerMessage.includes('menu') || lowerMessage.includes('essen') || lowerMessage.includes('gericht')) {
+      return {
+        response: '🍽️ Unsere Empfehlungen heute:\n\n**Vorspeisen**\n• Tagessuppe CHF 8.50\n• Gemischter Salat CHF 12.00\n\n**Hauptgerichte**\n• Zürcher Geschnetzeltes CHF 32.00\n• Schweizer Rösti CHF 18.00\n• Tagesfisch CHF 28.00\n\nMöchten Sie einen Tisch reservieren?',
+        suggestedActions: ['reservieren', 'desserts', 'getränke'],
+        confidence: 0.9,
+      };
+    }
+
+    // Öffnungszeiten
+    if (lowerMessage.includes('öffnungszeit') || lowerMessage.includes('offen') || lowerMessage.includes('geöffnet')) {
+      return {
+        response: '🕐 Unsere Öffnungszeiten:\n\n• Dienstag - Samstag: 11:30 - 14:00, 18:00 - 23:00\n• Sonntag: 11:30 - 15:00 (Brunch)\n• Montag: Ruhetag\n\n📍 Bahnhofstrasse 42, 8001 Zürich',
+        suggestedActions: ['reservieren', 'anfahrt'],
+        confidence: 0.95,
+      };
+    }
+
+    // Default Gastro response
+    return {
+      response: 'Grüezi und herzlich willkommen! 🍽️\n\nIch bin der Restaurant-Assistent. Wie kann ich Ihnen helfen?\n\n• 📅 Tisch reservieren\n• 📋 Speisekarte ansehen\n• 🕐 Öffnungszeiten\n• 📍 Anfahrt & Kontakt',
+      suggestedActions: ['reservieren', 'speisekarte', 'öffnungszeiten'],
+      confidence: 0.7,
+    };
+  }
+
   // Generic fallback for unknown agents
   return {
     response: 'Vielen Dank für Ihre Nachricht. Ein Mitarbeiter wird sich in Kürze bei Ihnen melden. Kann ich Ihnen sonst noch behilflich sein?',
