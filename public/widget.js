@@ -8,9 +8,11 @@
 (function() {
   'use strict';
 
-  // Configuration (reserved for future API integration)
-  // const WIDGET_BASE_URL = 'https://agentify.ch';
-  // const API_BASE_URL = 'https://api.agentify.ch';
+  // Configuration
+  const WIDGET_BASE_URL = 'https://agentify.ch';
+  const API_BASE_URL = window.location.hostname === 'localhost' 
+    ? 'http://localhost:3000' 
+    : 'https://agentify-lime.vercel.app';
 
   // Get script element and config
   const script = document.currentScript;
@@ -297,6 +299,7 @@
   let messages = [];
   let agentConfig = null;
   let isTyping = false;
+  let conversationId = null;
 
   // Create widget
   function createWidget() {
@@ -415,7 +418,7 @@
       if (typingEl) typingEl.remove();
     }
 
-    // Send message
+    // Send message to API
     async function sendMessage() {
       const text = inputEl.value.trim();
       if (!text || isTyping) return;
@@ -425,22 +428,94 @@
       showTyping();
 
       try {
-        // In production, this would call the API
-        await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
-        
-        const responses = [
-          'Vielen Dank für Ihre Anfrage! Ich helfe Ihnen gerne weiter.',
-          'Das ist eine gute Frage. Lassen Sie mich Ihnen mehr dazu erzählen.',
-          'Ich verstehe. Können Sie mir mehr Details geben?',
-        ];
-        
-        const response = responses[Math.floor(Math.random() * responses.length)];
+        const response = await fetch(`${API_BASE_URL}/api/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            agentId: agentId,
+            message: text,
+            conversationId: conversationId,
+            metadata: {
+              language: 'de',
+              source: 'widget',
+            },
+          }),
+        });
+
+        const data = await response.json();
         hideTyping();
-        addMessage('assistant', response);
+
+        if (data.success) {
+          // Update conversation ID for subsequent messages
+          conversationId = data.conversationId;
+          addMessage('assistant', data.response);
+          
+          // Handle suggested actions if present
+          if (data.suggestedActions && data.suggestedActions.length > 0) {
+            showSuggestedActions(data.suggestedActions);
+          }
+        } else {
+          addMessage('assistant', 'Entschuldigung, es gab einen Fehler. Bitte versuchen Sie es erneut.');
+        }
       } catch (_error) {
         hideTyping();
-        addMessage('assistant', 'Entschuldigung, es gab einen Fehler. Bitte versuchen Sie es erneut.');
+        addMessage('assistant', 'Entschuldigung, der Service ist momentan nicht erreichbar. Bitte versuchen Sie es später erneut.');
       }
+    }
+
+    // Show suggested action buttons
+    function showSuggestedActions(actions) {
+      const actionsEl = document.createElement('div');
+      actionsEl.className = 'agentify-suggested-actions';
+      actionsEl.style.cssText = 'display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; padding: 0 16px 16px;';
+      
+      const actionLabels = {
+        'termin_buchen': 'Termin buchen',
+        'mehr_info': 'Mehr Infos',
+        'mwst': 'MWST-Fragen',
+        'buchhaltung': 'Buchhaltung',
+        'steuern': 'Steuern',
+        'termin': 'Termin',
+        'erstberatung': 'Erstberatung',
+        'steuerberatung': 'Steuerberatung',
+        'mwst_beratung': 'MWST-Beratung',
+        'kontakt': 'Kontakt',
+        'preise': 'Preise',
+      };
+
+      actions.forEach(action => {
+        const btn = document.createElement('button');
+        btn.textContent = actionLabels[action] || action;
+        btn.style.cssText = `
+          padding: 6px 12px;
+          border: 1px solid ${primaryColor};
+          background: white;
+          color: ${primaryColor};
+          border-radius: 16px;
+          font-size: 12px;
+          cursor: pointer;
+          transition: all 0.2s;
+        `;
+        btn.addEventListener('mouseover', () => {
+          btn.style.background = primaryColor;
+          btn.style.color = 'white';
+        });
+        btn.addEventListener('mouseout', () => {
+          btn.style.background = 'white';
+          btn.style.color = primaryColor;
+        });
+        btn.addEventListener('click', () => {
+          inputEl.value = actionLabels[action] || action;
+          sendMessage();
+          actionsEl.remove();
+        });
+        actionsEl.appendChild(btn);
+      });
+
+      messagesEl.appendChild(actionsEl);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
     }
   }
 
