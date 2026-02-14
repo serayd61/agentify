@@ -7,10 +7,10 @@ import { cn } from "@/lib/utils";
 import { Menu, X, ArrowRight, Sparkles } from "lucide-react";
 
 const navigation = [
-  { name: "Produkte", href: "/products" },
-  { name: "Lösungen", href: "/solutions" },
-  { name: "Ressourcen", href: "/resources" },
+  { name: "Demo", href: "/demo" },
+  { name: "Marketplace", href: "/marketplace" },
   { name: "Preise", href: "/pricing" },
+  { name: "Kontakt", href: "/contact" },
 ];
 
 export function Header() {
