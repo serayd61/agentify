@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Menu, X, ArrowRight, Sparkles } from "lucide-react";
+import { Menu, X, ArrowRight } from "lucide-react";
 
 const navigation = [
   { name: "Demo", href: "/demo" },
@@ -18,9 +18,7 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -28,89 +26,85 @@ export function Header() {
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         isScrolled
-          ? "bg-[#030308]/90 backdrop-blur-xl border-b border-white/[0.06]"
+          ? "bg-white/90 backdrop-blur-xl border-b border-gray-100 shadow-sm"
           : "bg-transparent"
       )}
     >
       <div className="container">
-        <div className="flex items-center justify-between h-16 lg:h-20">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-[#8b5cf6] to-[#3b82f6] rounded-lg blur-lg opacity-40 group-hover:opacity-60 transition-opacity" />
-              <div className="relative w-9 h-9 rounded-lg bg-gradient-to-br from-[#8b5cf6] to-[#6366f1] flex items-center justify-center shadow-lg">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center">
+              <span className="text-white font-bold text-sm">A</span>
             </div>
-            <span className="text-xl font-bold text-white tracking-tight">
+            <span className="text-lg font-bold text-gray-900 tracking-tight">
               Agentify
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Nav */}
           <nav className="hidden lg:flex items-center gap-1">
             {navigation.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
-                className="relative px-4 py-2 text-sm font-medium text-white/60 hover:text-white rounded-lg transition-colors group"
+                className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 rounded-lg transition-colors"
               >
                 {item.name}
-                <span className="absolute inset-0 rounded-lg bg-white/0 group-hover:bg-white/[0.05] transition-colors" />
               </Link>
             ))}
           </nav>
 
-          {/* CTA Buttons */}
-          <div className="hidden lg:flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild>
+          {/* CTA */}
+          <div className="hidden lg:flex items-center gap-2">
+            <Button variant="ghost" size="sm" asChild className="text-gray-600 hover:text-gray-900">
               <Link href="/login">Anmelden</Link>
             </Button>
-            <Button size="sm" asChild>
+            <Button size="sm" asChild className="bg-red-600 hover:bg-red-700 text-white rounded-full px-5">
               <Link href="/register">
-                Agentify starten
-                <ArrowRight className="w-4 h-4" />
+                Starten
+                <ArrowRight className="w-3.5 h-3.5 ml-1" />
               </Link>
             </Button>
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Toggle */}
           <button
-            className="lg:hidden p-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] transition-colors"
+            className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             {isMobileMenuOpen ? (
-              <X className="w-5 h-5 text-white" />
+              <X className="w-5 h-5 text-gray-700" />
             ) : (
-              <Menu className="w-5 h-5 text-white" />
+              <Menu className="w-5 h-5 text-gray-700" />
             )}
           </button>
         </div>
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden py-6 border-t border-white/[0.06] animate-fade-in">
+          <div className="lg:hidden py-4 border-t border-gray-100 bg-white">
             <nav className="flex flex-col gap-1">
               {navigation.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="px-4 py-3 text-base font-medium text-white/70 hover:text-white hover:bg-white/[0.05] rounded-lg transition-colors"
+                  className="px-4 py-3 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {item.name}
                 </Link>
               ))}
-              <div className="flex flex-col gap-3 pt-4 mt-4 border-t border-white/[0.06]">
-                <Button variant="secondary" asChild className="w-full">
+              <div className="flex flex-col gap-2 pt-4 mt-2 border-t border-gray-100">
+                <Button variant="outline" asChild className="w-full rounded-full">
                   <Link href="/login">Anmelden</Link>
                 </Button>
-                <Button asChild className="w-full">
+                <Button asChild className="w-full bg-red-600 hover:bg-red-700 text-white rounded-full">
                   <Link href="/register">
-                    Agentify starten
-                    <ArrowRight className="w-4 h-4" />
+                    Starten
+                    <ArrowRight className="w-3.5 h-3.5 ml-1" />
                   </Link>
                 </Button>
               </div>

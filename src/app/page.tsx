@@ -6,7 +6,6 @@ import { motion } from "framer-motion";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import * as Accordion from "@radix-ui/react-accordion";
 import {
   ArrowRight,
   Check,
@@ -14,330 +13,203 @@ import {
   Calendar,
   Clock,
   Shield,
-  ChevronDown,
   Sparkles,
   Phone,
   FileText,
+  ChevronRight,
 } from "lucide-react";
 
-// Animation variants
-const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
+const fadeIn = {
+  hidden: { opacity: 0, y: 16 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 };
 
-const staggerContainer = {
+const stagger = {
   hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 },
-  },
+  visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
 };
-
-// Branchen für KMU
-const branchen = [
-  { name: "Treuhand", icon: "📊", color: "#dc2626" },
-  { name: "Handwerk", icon: "🔧", color: "#f59e0b" },
-  { name: "Gesundheit", icon: "🏥", color: "#10b981" },
-  { name: "Gastronomie", icon: "🍽️", color: "#8b5cf6" },
-  { name: "Immobilien", icon: "🏠", color: "#3b82f6" },
-  { name: "Rechtsberatung", icon: "⚖️", color: "#6366f1" },
-];
-
-// Vorteile
-const vorteile = [
-  {
-    icon: MessageSquare,
-    title: "24/7 Kundenservice",
-    description: "Ihr Assistent beantwortet Kundenanfragen rund um die Uhr, auch am Wochenende.",
-  },
-  {
-    icon: Calendar,
-    title: "Automatische Terminbuchung",
-    description: "Kunden buchen selbst Termine – ohne Telefonanrufe oder E-Mail-Ping-Pong.",
-  },
-  {
-    icon: FileText,
-    title: "FAQ & Wissensbasis",
-    description: "Häufige Fragen werden sofort beantwortet. Sie sparen Zeit für wichtigere Aufgaben.",
-  },
-  {
-    icon: Phone,
-    title: "Intelligente Weiterleitung",
-    description: "Komplexe Anfragen werden automatisch an Sie weitergeleitet – per E-Mail oder WhatsApp.",
-  },
-];
-
-// Preise
-const preise = [
-  {
-    name: "Starter",
-    preis: "199",
-    beschreibung: "Perfekt für Einzelunternehmer",
-    features: ["1 KI-Assistent", "2'500 Nachrichten/Monat", "E-Mail-Support", "Widget für Website"],
-    highlight: false,
-  },
-  {
-    name: "Business",
-    preis: "399",
-    beschreibung: "Für wachsende KMU",
-    features: ["3 KI-Assistenten", "10'000 Nachrichten/Monat", "Priority Support", "WhatsApp-Integration", "Eigenes Branding"],
-    highlight: true,
-  },
-  {
-    name: "Enterprise",
-    preis: "899",
-    beschreibung: "Für grössere Unternehmen",
-    features: ["Unbegrenzte Assistenten", "50'000 Nachrichten/Monat", "Dedicated Support", "API-Zugang", "Custom Integrationen"],
-    highlight: false,
-  },
-];
-
-// Testimonials
-const testimonials = [
-  {
-    quote: "Seit wir den Treuhand-Assistenten haben, verpassen wir keine Kundenanfrage mehr.",
-    author: "Thomas M.",
-    role: "Treuhand Müller AG, Aarau",
-  },
-  {
-    quote: "Die Online-Terminbuchung hat unsere Telefonzeit um 60% reduziert.",
-    author: "Dr. Sandra K.",
-    role: "Zahnarztpraxis Küsnacht",
-  },
-  {
-    quote: "Am Wochenende erreichen uns keine Notfall-Anrufe mehr direkt. Der Agent filtert perfekt.",
-    author: "Marco B.",
-    role: "Elektro Brunner GmbH",
-  },
-];
-
-// FAQ
-const faqItems = [
-  {
-    question: "Wie schnell kann ich starten?",
-    answer: "In nur 5 Minuten! Wählen Sie Ihren Branchen-Assistenten, passen Sie die Antworten an, und kopieren Sie den Widget-Code auf Ihre Website.",
-  },
-  {
-    question: "Wo werden meine Daten gespeichert?",
-    answer: "Alle Daten werden in der Schweiz gespeichert (Swiss Hosting). Wir sind DSG-konform und DSGVO-ready.",
-  },
-  {
-    question: "Kann ich den Assistenten anpassen?",
-    answer: "Ja! Sie können Ihre eigenen FAQ, Preise, Öffnungszeiten und Antworten hinterlegen.",
-  },
-  {
-    question: "Was passiert bei komplexen Anfragen?",
-    answer: "Der Assistent erkennt komplexe Anfragen und leitet sie per E-Mail oder WhatsApp an Sie weiter.",
-  },
-];
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-[#030308] flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       <Header />
 
-      {/* ============================================ */}
-      {/* HERO SECTION */}
-      {/* ============================================ */}
-      <section className="relative pt-24 sm:pt-32 pb-16 sm:pb-24 overflow-hidden">
-        {/* Background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#dc2626]/5 via-transparent to-transparent" />
-        <div className="absolute top-20 left-1/4 w-64 sm:w-96 h-64 sm:h-96 bg-[#dc2626]/10 rounded-full blur-[150px]" />
-        <div className="absolute top-40 right-1/4 w-52 sm:w-80 h-52 sm:h-80 bg-[#8b5cf6]/10 rounded-full blur-[120px]" />
-
+      {/* ── HERO ── */}
+      <section className="relative pt-28 sm:pt-36 lg:pt-44 pb-20 sm:pb-28 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-50 to-white" />
+        
         <div className="container relative z-10">
           <motion.div
             initial="hidden"
             animate="visible"
-            variants={staggerContainer}
-            className="max-w-4xl mx-auto text-center"
+            variants={stagger}
+            className="max-w-3xl mx-auto text-center"
           >
             {/* Badge */}
-            <motion.div variants={fadeInUp} className="mb-6">
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm">
-                <Sparkles className="w-4 h-4 text-[#dc2626]" />
-                <span className="text-white/70">Swiss Made</span>
-                <span className="text-white/30">•</span>
-                <span className="text-white/70">Ab CHF 199/Monat</span>
+            <motion.div variants={fadeIn} className="mb-6">
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-50 border border-red-100 text-sm text-red-700 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                Swiss Made · Ab CHF 199/Mt.
               </span>
             </motion.div>
 
             {/* Headline */}
             <motion.h1
-              variants={fadeInUp}
-              className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight"
+              variants={fadeIn}
+              className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-5 leading-[1.1] tracking-tight"
             >
-              KI-Assistenten für
+              Ihr KI-Assistent für
               <br />
-              <span className="text-[#dc2626]">Schweizer KMU</span>
+              <span className="text-red-600">zufriedene Kunden</span>
             </motion.h1>
 
-            {/* Subheadline */}
+            {/* One-liner */}
             <motion.p
-              variants={fadeInUp}
-              className="text-base sm:text-lg md:text-xl text-white/60 mb-8 sm:mb-10 max-w-2xl mx-auto px-2"
+              variants={fadeIn}
+              className="text-lg sm:text-xl text-gray-500 mb-8 max-w-xl mx-auto leading-relaxed"
             >
-              Ihr digitaler Mitarbeiter für Kundenanfragen, Terminbuchungen und Support.
-              In 5 Minuten startklar. Keine Einrichtungskosten.
+              Kundenanfragen, Termine und Support — automatisiert, rund um die Uhr. In 5 Minuten eingerichtet.
             </motion.p>
 
-            {/* CTA Buttons */}
-            <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <Button size="lg" asChild className="bg-[#dc2626] hover:bg-[#b91c1c]">
+            {/* CTA */}
+            <motion.div variants={fadeIn} className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button size="lg" asChild className="bg-red-600 hover:bg-red-700 text-white rounded-full px-8 h-12">
                 <Link href="/register">
                   Kostenlos testen
-                  <ArrowRight className="w-5 h-5 ml-2" />
+                  <ArrowRight className="w-4 h-4 ml-2" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link href="/marketplace">Assistenten ansehen</Link>
+              <Button size="lg" variant="outline" asChild className="rounded-full px-8 h-12 border-gray-200 text-gray-700 hover:bg-gray-50">
+                <Link href="/demo">Live Demo ansehen</Link>
               </Button>
             </motion.div>
 
-            {/* Trust Badges */}
-            <motion.div variants={fadeInUp} className="flex flex-wrap justify-center gap-4 sm:gap-6 text-xs sm:text-sm text-white/50">
-              <div className="flex items-center gap-2">
+            {/* Trust row */}
+            <motion.div variants={fadeIn} className="flex flex-wrap justify-center gap-6 mt-10 text-sm text-gray-400">
+              <span className="flex items-center gap-1.5">
                 <Shield className="w-4 h-4 text-green-500" />
-                <span>Swiss Hosting</span>
-              </div>
-              <div className="flex items-center gap-2">
+                Swiss Hosting
+              </span>
+              <span className="flex items-center gap-1.5">
                 <Shield className="w-4 h-4 text-green-500" />
-                <span>DSGVO-konform</span>
-              </div>
-              <div className="flex items-center gap-2">
+                DSGVO-konform
+              </span>
+              <span className="flex items-center gap-1.5">
                 <Clock className="w-4 h-4 text-green-500" />
-                <span>24/7 verfügbar</span>
+                24/7 verfügbar
+              </span>
+            </motion.div>
+          </motion.div>
+        </div>
+
+        {/* Hero visual — chat mockup */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.7 }}
+          className="container relative z-10 mt-16 max-w-4xl"
+        >
+          <div className="bg-white rounded-2xl shadow-2xl shadow-gray-200/60 border border-gray-100 overflow-hidden">
+            {/* Browser bar */}
+            <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border-b border-gray-100">
+              <div className="flex gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
+                <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
+                <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
               </div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ============================================ */}
-      {/* BRANCHEN SECTION */}
-      {/* ============================================ */}
-      <section className="py-12 sm:py-20 border-y border-white/5">
-        <div className="container">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="text-center mb-12"
-          >
-            <motion.p variants={fadeInUp} className="text-white/50 mb-8">
-              Spezialisierte Assistenten für jede Branche
-            </motion.p>
-            <motion.div variants={fadeInUp} className="grid grid-cols-2 sm:flex sm:flex-wrap justify-center gap-3 sm:gap-4">
-              {branchen.map((branche) => (
-                <Link
-                  key={branche.name}
-                  href={`/marketplace?branche=${branche.name.toLowerCase()}`}
-                  className="flex items-center gap-3 px-5 py-3 bg-white/5 rounded-xl border border-white/10 hover:border-white/20 transition-all group"
-                >
-                  <span className="text-2xl">{branche.icon}</span>
-                  <span className="text-white/80 group-hover:text-white">{branche.name}</span>
-                </Link>
-              ))}
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ============================================ */}
-      {/* LIVE DEMO SECTION */}
-      {/* ============================================ */}
-      <section className="py-16 sm:py-24 relative overflow-hidden">
-        {/* Background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#dc2626]/5 to-transparent" />
-        
-        <div className="container relative z-10">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="text-center"
-          >
-            <motion.div variants={fadeInUp} className="mb-8">
-              <span className="text-[#dc2626] text-sm font-semibold uppercase tracking-wider mb-4 block">
-                Live Demo
-              </span>
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                Testen Sie unsere KI-Assistenten
-              </h2>
-              <p className="text-white/50 max-w-2xl mx-auto mb-8">
-                3 Branchen-Assistenten live ausprobieren: Treuhand, Gesundheit und Gastronomie.
-              </p>
-            </motion.div>
-
-            {/* Demo Preview Cards */}
-            <motion.div variants={fadeInUp} className="flex flex-wrap justify-center gap-4 mb-8">
-              {[
-                { icon: "📊", name: "Treuhand", color: "#dc2626" },
-                { icon: "🏥", name: "Gesundheit", color: "#10b981" },
-                { icon: "🍽️", name: "Gastronomie", color: "#8b5cf6" },
-              ].map((agent) => (
-                <div
-                  key={agent.name}
-                  className="flex items-center gap-3 px-5 py-3 bg-white/5 rounded-xl border border-white/10"
-                >
-                  <span className="text-2xl">{agent.icon}</span>
-                  <span className="text-white/80">{agent.name}</span>
+              <div className="flex-1 flex justify-center">
+                <div className="px-4 py-1 bg-white rounded-md text-xs text-gray-400 border border-gray-100">
+                  ihrefirma.ch
                 </div>
-              ))}
-            </motion.div>
+              </div>
+            </div>
+            {/* Chat preview */}
+            <div className="p-6 sm:p-8 flex flex-col gap-4">
+              <div className="flex gap-3 items-start">
+                <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-sm shrink-0">🤖</div>
+                <div className="bg-gray-50 rounded-2xl rounded-tl-md px-4 py-3 text-sm text-gray-700 max-w-md">
+                  Grüezi! Wie kann ich Ihnen helfen? Ich beantworte Fragen, buche Termine und leite komplexe Anfragen weiter.
+                </div>
+              </div>
+              <div className="flex gap-3 items-start justify-end">
+                <div className="bg-red-600 rounded-2xl rounded-tr-md px-4 py-3 text-sm text-white max-w-xs">
+                  Ich möchte einen Beratungstermin buchen.
+                </div>
+              </div>
+              <div className="flex gap-3 items-start">
+                <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-sm shrink-0">🤖</div>
+                <div className="bg-gray-50 rounded-2xl rounded-tl-md px-4 py-3 text-sm text-gray-700 max-w-md">
+                  Gerne! Passt Ihnen Mittwoch, 14:00 Uhr? Ich habe freie Termine am Mittwoch und Freitag.
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </section>
 
-            <motion.div variants={fadeInUp}>
-              <Button size="lg" asChild className="bg-[#dc2626] hover:bg-[#b91c1c]">
-                <Link href="/demo">
-                  Live Demo starten
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Link>
-              </Button>
-            </motion.div>
-          </motion.div>
+      {/* ── BRANCHEN ── */}
+      <section className="py-16 sm:py-24 border-t border-gray-100">
+        <div className="container">
+          <p className="text-center text-sm text-gray-400 font-medium uppercase tracking-widest mb-8">
+            Für jede Branche der passende Assistent
+          </p>
+          <div className="flex flex-wrap justify-center gap-3">
+            {[
+              { icon: "📊", name: "Treuhand" },
+              { icon: "🔧", name: "Handwerk" },
+              { icon: "🏥", name: "Gesundheit" },
+              { icon: "🍽️", name: "Gastronomie" },
+              { icon: "🏠", name: "Immobilien" },
+              { icon: "⚖️", name: "Rechtsberatung" },
+            ].map((b) => (
+              <Link
+                key={b.name}
+                href={`/marketplace?branche=${b.name.toLowerCase()}`}
+                className="flex items-center gap-2.5 px-5 py-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all text-gray-700 hover:text-gray-900"
+              >
+                <span className="text-xl">{b.icon}</span>
+                <span className="text-sm font-medium">{b.name}</span>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* ============================================ */}
-      {/* VORTEILE SECTION */}
-      {/* ============================================ */}
-      <section className="py-16 sm:py-24">
+      {/* ── VORTEILE ── */}
+      <section className="py-20 sm:py-28">
         <div className="container">
           <motion.div
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
+            viewport={{ once: true, margin: "-100px" }}
+            variants={stagger}
           >
-            {/* Section Header */}
-            <motion.div variants={fadeInUp} className="text-center mb-16">
-              <span className="text-[#dc2626] text-sm font-semibold uppercase tracking-wider mb-4 block">
-                Vorteile
-              </span>
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                Was Ihr KI-Assistent kann
+            <motion.div variants={fadeIn} className="text-center mb-14">
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
+                Was Ihr Assistent kann
               </h2>
-              <p className="text-white/50 max-w-2xl mx-auto">
-                Entlasten Sie Ihr Team und bieten Sie Ihren Kunden besseren Service.
+              <p className="text-gray-500 max-w-md mx-auto">
+                Weniger Aufwand für Ihr Team. Besserer Service für Ihre Kunden.
               </p>
             </motion.div>
 
-            {/* Features Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              {vorteile.map((vorteil, index) => (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
+              {[
+                { icon: MessageSquare, title: "24/7 Kundenservice", desc: "Beantwortet Anfragen rund um die Uhr." },
+                { icon: Calendar, title: "Terminbuchung", desc: "Kunden buchen direkt — ohne Telefon." },
+                { icon: FileText, title: "FAQ & Wissen", desc: "Häufige Fragen sofort beantwortet." },
+                { icon: Phone, title: "Weiterleitung", desc: "Komplexes geht direkt an Sie." },
+              ].map((v, i) => (
                 <motion.div
-                  key={index}
-                  variants={fadeInUp}
-                  className="p-6 bg-white/[0.02] rounded-2xl border border-white/5 hover:border-[#dc2626]/30 transition-all"
+                  key={i}
+                  variants={fadeIn}
+                  className="p-6 rounded-2xl bg-gray-50 border border-gray-100 hover:shadow-md hover:border-gray-200 transition-all"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-[#dc2626]/10 flex items-center justify-center mb-4">
-                    <vorteil.icon className="w-6 h-6 text-[#dc2626]" />
+                  <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center mb-4">
+                    <v.icon className="w-5 h-5 text-red-600" />
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">{vorteil.title}</h3>
-                  <p className="text-white/50 text-sm">{vorteil.description}</p>
+                  <h3 className="font-semibold text-gray-900 mb-1">{v.title}</h3>
+                  <p className="text-sm text-gray-500">{v.desc}</p>
                 </motion.div>
               ))}
             </div>
@@ -345,40 +217,33 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ============================================ */}
-      {/* SO FUNKTIONIERT'S SECTION */}
-      {/* ============================================ */}
-      <section className="py-16 sm:py-24 bg-white/[0.01]">
+      {/* ── SO FUNKTIONIERT'S ── */}
+      <section className="py-20 sm:py-28 bg-gray-50">
         <div className="container">
           <motion.div
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
+            viewport={{ once: true, margin: "-100px" }}
+            variants={stagger}
           >
-            {/* Section Header */}
-            <motion.div variants={fadeInUp} className="text-center mb-10 sm:mb-16">
-              <span className="text-[#dc2626] text-sm font-semibold uppercase tracking-wider mb-4 block">
-                So funktioniert&apos;s
-              </span>
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            <motion.div variants={fadeIn} className="text-center mb-14">
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
                 In 3 Schritten startklar
               </h2>
             </motion.div>
 
-            {/* Steps */}
-            <div className="grid sm:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <div className="grid sm:grid-cols-3 gap-8 max-w-3xl mx-auto">
               {[
-                { step: "1", title: "Assistent wählen", desc: "Wählen Sie den passenden Branchen-Assistenten aus unserem Marketplace." },
-                { step: "2", title: "Anpassen", desc: "Fügen Sie Ihre FAQ, Preise und Öffnungszeiten hinzu." },
-                { step: "3", title: "Einbinden", desc: "Kopieren Sie den Widget-Code auf Ihre Website. Fertig!" },
-              ].map((item, index) => (
-                <motion.div key={index} variants={fadeInUp} className="text-center">
-                  <div className="w-16 h-16 rounded-full bg-[#dc2626]/10 border-2 border-[#dc2626]/30 flex items-center justify-center mx-auto mb-4">
-                    <span className="text-2xl font-bold text-[#dc2626]">{item.step}</span>
+                { step: "1", title: "Wählen", desc: "Branchen-Assistent aus dem Marketplace wählen." },
+                { step: "2", title: "Anpassen", desc: "FAQ, Preise und Öffnungszeiten hinterlegen." },
+                { step: "3", title: "Einbinden", desc: "Widget-Code kopieren. Fertig." },
+              ].map((s, i) => (
+                <motion.div key={i} variants={fadeIn} className="text-center">
+                  <div className="w-12 h-12 rounded-full bg-white border-2 border-red-200 flex items-center justify-center mx-auto mb-4 text-red-600 font-bold text-lg">
+                    {s.step}
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
-                  <p className="text-white/50 text-sm">{item.desc}</p>
+                  <h3 className="font-semibold text-gray-900 mb-1">{s.title}</h3>
+                  <p className="text-sm text-gray-500">{s.desc}</p>
                 </motion.div>
               ))}
             </div>
@@ -386,63 +251,76 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ============================================ */}
-      {/* PREISE SECTION */}
-      {/* ============================================ */}
-      <section className="py-16 sm:py-24">
+      {/* ── PREISE ── */}
+      <section className="py-20 sm:py-28">
         <div className="container">
           <motion.div
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
+            viewport={{ once: true, margin: "-100px" }}
+            variants={stagger}
           >
-            {/* Section Header */}
-            <motion.div variants={fadeInUp} className="text-center mb-16">
-              <span className="text-[#dc2626] text-sm font-semibold uppercase tracking-wider mb-4 block">
-                Preise
-              </span>
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                Transparente Preise für KMU
+            <motion.div variants={fadeIn} className="text-center mb-14">
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
+                Einfache Preise
               </h2>
-              <p className="text-white/50">
-                Keine Einrichtungskosten. Monatlich kündbar.
-              </p>
+              <p className="text-gray-500">Keine Einrichtungskosten. Monatlich kündbar.</p>
             </motion.div>
 
-            {/* Pricing Cards */}
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-5xl mx-auto">
-              {preise.map((plan, index) => (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-4xl mx-auto">
+              {[
+                {
+                  name: "Starter",
+                  price: "199",
+                  desc: "Für Einzelunternehmer",
+                  features: ["1 KI-Assistent", "2'500 Nachrichten/Mt.", "E-Mail-Support", "Website-Widget"],
+                  highlight: false,
+                },
+                {
+                  name: "Business",
+                  price: "399",
+                  desc: "Für wachsende KMU",
+                  features: ["3 KI-Assistenten", "10'000 Nachrichten/Mt.", "Priority Support", "WhatsApp-Integration", "Eigenes Branding"],
+                  highlight: true,
+                },
+                {
+                  name: "Enterprise",
+                  price: "899",
+                  desc: "Für grössere Unternehmen",
+                  features: ["Unbegrenzte Assistenten", "50'000 Nachrichten/Mt.", "Dedicated Support", "API-Zugang", "Custom Integrationen"],
+                  highlight: false,
+                },
+              ].map((plan, i) => (
                 <motion.div
-                  key={index}
-                  variants={fadeInUp}
-                  className={`p-6 rounded-2xl border ${
+                  key={i}
+                  variants={fadeIn}
+                  className={`p-6 rounded-2xl border transition-all ${
                     plan.highlight
-                      ? "bg-[#dc2626]/5 border-[#dc2626]/30"
-                      : "bg-white/[0.02] border-white/5"
+                      ? "bg-white border-red-200 shadow-lg shadow-red-100/50 ring-1 ring-red-100"
+                      : "bg-white border-gray-100 hover:shadow-md"
                   }`}
                 >
                   {plan.highlight && (
-                    <span className="inline-block px-3 py-1 bg-[#dc2626] text-white text-xs font-semibold rounded-full mb-4">
+                    <span className="inline-block px-3 py-0.5 bg-red-600 text-white text-xs font-semibold rounded-full mb-3">
                       Beliebt
                     </span>
                   )}
-                  <h3 className="text-xl font-bold text-white mb-1">{plan.name}</h3>
-                  <p className="text-white/50 text-sm mb-4">{plan.beschreibung}</p>
-                  <div className="mb-6">
-                    <span className="text-4xl font-bold text-white">CHF {plan.preis}</span>
-                    <span className="text-white/50">/Monat</span>
+                  <h3 className="text-lg font-bold text-gray-900">{plan.name}</h3>
+                  <p className="text-sm text-gray-400 mb-4">{plan.desc}</p>
+                  <div className="mb-5">
+                    <span className="text-3xl font-bold text-gray-900">CHF {plan.price}</span>
+                    <span className="text-gray-400 text-sm">/Mt.</span>
                   </div>
-                  <ul className="space-y-3 mb-6">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-center gap-2 text-white/70 text-sm">
+                  <ul className="space-y-2.5 mb-6">
+                    {plan.features.map((f, j) => (
+                      <li key={j} className="flex items-center gap-2 text-sm text-gray-600">
                         <Check className="w-4 h-4 text-green-500 shrink-0" />
-                        {feature}
+                        {f}
                       </li>
                     ))}
                   </ul>
                   <Button
-                    className={`w-full ${plan.highlight ? "bg-[#dc2626] hover:bg-[#b91c1c]" : ""}`}
+                    className={`w-full rounded-full ${plan.highlight ? "bg-red-600 hover:bg-red-700 text-white" : ""}`}
                     variant={plan.highlight ? "default" : "outline"}
                     asChild
                   >
@@ -455,44 +333,48 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ============================================ */}
-      {/* TESTIMONIALS SECTION */}
-      {/* ============================================ */}
-      <section className="py-16 sm:py-24 bg-white/[0.01]">
+      {/* ── TESTIMONIALS ── */}
+      <section className="py-20 sm:py-28 bg-gray-50">
         <div className="container">
           <motion.div
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
+            viewport={{ once: true, margin: "-100px" }}
+            variants={stagger}
           >
-            {/* Section Header */}
-            <motion.div variants={fadeInUp} className="text-center mb-10 sm:mb-16">
-              <span className="text-[#dc2626] text-sm font-semibold uppercase tracking-wider mb-4 block">
-                Kundenstimmen
-              </span>
-              <h2 className="text-3xl md:text-4xl font-bold text-white">
-                Was unsere Kunden sagen
+            <motion.div variants={fadeIn} className="text-center mb-14">
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
+                Das sagen unsere Kunden
               </h2>
             </motion.div>
 
-            {/* Testimonials Grid */}
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-5xl mx-auto">
-              {testimonials.map((testimonial, index) => (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-4xl mx-auto">
+              {[
+                {
+                  quote: "Wir verpassen keine Kundenanfrage mehr — auch nachts nicht.",
+                  author: "Thomas M.",
+                  role: "Treuhand Müller AG",
+                },
+                {
+                  quote: "60% weniger Telefonzeit dank automatischer Terminbuchung.",
+                  author: "Dr. Sandra K.",
+                  role: "Zahnarztpraxis Küsnacht",
+                },
+                {
+                  quote: "Der Agent filtert am Wochenende perfekt — nur echte Notfälle kommen durch.",
+                  author: "Marco B.",
+                  role: "Elektro Brunner GmbH",
+                },
+              ].map((t, i) => (
                 <motion.div
-                  key={index}
-                  variants={fadeInUp}
-                  className="p-6 bg-white/[0.02] rounded-2xl border border-white/5"
+                  key={i}
+                  variants={fadeIn}
+                  className="p-6 bg-white rounded-2xl border border-gray-100"
                 >
-                  <div className="flex gap-1 mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <Sparkles key={i} className="w-4 h-4 text-[#dc2626]" />
-                    ))}
-                  </div>
-                  <p className="text-white/70 mb-4">&ldquo;{testimonial.quote}&rdquo;</p>
+                  <p className="text-gray-700 mb-4 leading-relaxed">&ldquo;{t.quote}&rdquo;</p>
                   <div>
-                    <p className="text-white font-semibold">{testimonial.author}</p>
-                    <p className="text-white/40 text-sm">{testimonial.role}</p>
+                    <p className="font-semibold text-gray-900 text-sm">{t.author}</p>
+                    <p className="text-gray-400 text-xs">{t.role}</p>
                   </div>
                 </motion.div>
               ))}
@@ -501,80 +383,30 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ============================================ */}
-      {/* FAQ SECTION */}
-      {/* ============================================ */}
-      <section className="py-16 sm:py-24">
-        <div className="container max-w-3xl">
+      {/* ── CTA ── */}
+      <section className="py-20 sm:py-28">
+        <div className="container">
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            variants={staggerContainer}
+            variants={stagger}
+            className="text-center max-w-xl mx-auto"
           >
-            {/* Section Header */}
-            <motion.div variants={fadeInUp} className="text-center mb-12">
-              <span className="text-[#dc2626] text-sm font-semibold uppercase tracking-wider mb-4 block">
-                FAQ
-              </span>
-              <h2 className="text-3xl md:text-4xl font-bold text-white">
-                Häufige Fragen
-              </h2>
-            </motion.div>
-
-            {/* FAQ Accordion */}
-            <Accordion.Root type="single" collapsible className="space-y-3">
-              {faqItems.map((item, index) => (
-                <Accordion.Item
-                  key={index}
-                  value={`item-${index}`}
-                  className="bg-white/[0.02] rounded-xl border border-white/5 overflow-hidden"
-                >
-                  <Accordion.Trigger className="flex items-center justify-between w-full px-6 py-4 text-left text-white font-medium hover:text-[#dc2626] transition-colors group">
-                    {item.question}
-                    <ChevronDown className="w-5 h-5 text-white/40 group-data-[state=open]:rotate-180 transition-transform" />
-                  </Accordion.Trigger>
-                  <Accordion.Content className="px-6 pb-4 text-white/60">
-                    {item.answer}
-                  </Accordion.Content>
-                </Accordion.Item>
-              ))}
-            </Accordion.Root>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ============================================ */}
-      {/* CTA SECTION */}
-      {/* ============================================ */}
-      <section className="py-16 sm:py-24 relative overflow-hidden">
-        {/* Background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#dc2626]/10 via-[#dc2626]/5 to-transparent" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] bg-[#dc2626]/10 rounded-full blur-[200px]" />
-
-        <div className="container relative z-10">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="text-center max-w-2xl mx-auto"
-          >
-            <motion.h2 variants={fadeInUp} className="text-3xl md:text-5xl font-bold text-white mb-6">
-              Bereit für Ihren KI-Assistenten?
+            <motion.h2 variants={fadeIn} className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+              Bereit loszulegen?
             </motion.h2>
-            <motion.p variants={fadeInUp} className="text-lg text-white/60 mb-8">
-              Starten Sie noch heute und entlasten Sie Ihr Team.
-              14 Tage kostenlos testen.
+            <motion.p variants={fadeIn} className="text-gray-500 mb-8">
+              14 Tage kostenlos. Keine Kreditkarte nötig.
             </motion.p>
-            <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" asChild className="bg-[#dc2626] hover:bg-[#b91c1c]">
+            <motion.div variants={fadeIn} className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button size="lg" asChild className="bg-red-600 hover:bg-red-700 text-white rounded-full px-8 h-12">
                 <Link href="/register">
                   Kostenlos starten
-                  <ArrowRight className="w-5 h-5 ml-2" />
+                  <ArrowRight className="w-4 h-4 ml-2" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" asChild>
+              <Button size="lg" variant="outline" asChild className="rounded-full px-8 h-12 border-gray-200 text-gray-700 hover:bg-gray-50">
                 <Link href="/contact">Beratung anfordern</Link>
               </Button>
             </motion.div>
