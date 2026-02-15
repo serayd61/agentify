@@ -9,6 +9,7 @@ export function getStripe(): Stripe {
       throw new Error('STRIPE_SECRET_KEY is not configured');
     }
     stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      // @ts-expect-error Stripe SDK version mismatch
       apiVersion: '2025-12-15.clover',
       typescript: true,
     });
