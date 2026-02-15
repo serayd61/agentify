@@ -140,11 +140,11 @@ export default function HomePage() {
       {/* ============================================ */}
       {/* HERO SECTION */}
       {/* ============================================ */}
-      <section className="relative pt-32 pb-24 overflow-hidden">
+      <section className="relative pt-24 sm:pt-32 pb-16 sm:pb-24 overflow-hidden">
         {/* Background */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#dc2626]/5 via-transparent to-transparent" />
-        <div className="absolute top-20 left-1/4 w-96 h-96 bg-[#dc2626]/10 rounded-full blur-[150px]" />
-        <div className="absolute top-40 right-1/4 w-80 h-80 bg-[#8b5cf6]/10 rounded-full blur-[120px]" />
+        <div className="absolute top-20 left-1/4 w-64 sm:w-96 h-64 sm:h-96 bg-[#dc2626]/10 rounded-full blur-[150px]" />
+        <div className="absolute top-40 right-1/4 w-52 sm:w-80 h-52 sm:h-80 bg-[#8b5cf6]/10 rounded-full blur-[120px]" />
 
         <div className="container relative z-10">
           <motion.div
@@ -176,7 +176,7 @@ export default function HomePage() {
             {/* Subheadline */}
             <motion.p
               variants={fadeInUp}
-              className="text-lg md:text-xl text-white/60 mb-10 max-w-2xl mx-auto"
+              className="text-base sm:text-lg md:text-xl text-white/60 mb-8 sm:mb-10 max-w-2xl mx-auto px-2"
             >
               Ihr digitaler Mitarbeiter für Kundenanfragen, Terminbuchungen und Support.
               In 5 Minuten startklar. Keine Einrichtungskosten.
@@ -196,7 +196,7 @@ export default function HomePage() {
             </motion.div>
 
             {/* Trust Badges */}
-            <motion.div variants={fadeInUp} className="flex flex-wrap justify-center gap-6 text-sm text-white/50">
+            <motion.div variants={fadeInUp} className="flex flex-wrap justify-center gap-4 sm:gap-6 text-xs sm:text-sm text-white/50">
               <div className="flex items-center gap-2">
                 <Shield className="w-4 h-4 text-green-500" />
                 <span>Swiss Hosting</span>
@@ -217,7 +217,7 @@ export default function HomePage() {
       {/* ============================================ */}
       {/* BRANCHEN SECTION */}
       {/* ============================================ */}
-      <section className="py-20 border-y border-white/5">
+      <section className="py-12 sm:py-20 border-y border-white/5">
         <div className="container">
           <motion.div
             initial="hidden"
@@ -229,7 +229,7 @@ export default function HomePage() {
             <motion.p variants={fadeInUp} className="text-white/50 mb-8">
               Spezialisierte Assistenten für jede Branche
             </motion.p>
-            <motion.div variants={fadeInUp} className="flex flex-wrap justify-center gap-4">
+            <motion.div variants={fadeInUp} className="grid grid-cols-2 sm:flex sm:flex-wrap justify-center gap-3 sm:gap-4">
               {branchen.map((branche) => (
                 <Link
                   key={branche.name}
@@ -248,7 +248,7 @@ export default function HomePage() {
       {/* ============================================ */}
       {/* LIVE DEMO SECTION */}
       {/* ============================================ */}
-      <section className="py-24 relative overflow-hidden">
+      <section className="py-16 sm:py-24 relative overflow-hidden">
         {/* Background */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#dc2626]/5 to-transparent" />
         
@@ -304,7 +304,7 @@ export default function HomePage() {
       {/* ============================================ */}
       {/* VORTEILE SECTION */}
       {/* ============================================ */}
-      <section className="py-24">
+      <section className="py-16 sm:py-24">
         <div className="container">
           <motion.div
             initial="hidden"
@@ -326,7 +326,7 @@ export default function HomePage() {
             </motion.div>
 
             {/* Features Grid */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {vorteile.map((vorteil, index) => (
                 <motion.div
                   key={index}
@@ -348,7 +348,7 @@ export default function HomePage() {
       {/* ============================================ */}
       {/* SO FUNKTIONIERT'S SECTION */}
       {/* ============================================ */}
-      <section className="py-24 bg-white/[0.01]">
+      <section className="py-16 sm:py-24 bg-white/[0.01]">
         <div className="container">
           <motion.div
             initial="hidden"
@@ -357,7 +357,7 @@ export default function HomePage() {
             variants={staggerContainer}
           >
             {/* Section Header */}
-            <motion.div variants={fadeInUp} className="text-center mb-16">
+            <motion.div variants={fadeInUp} className="text-center mb-10 sm:mb-16">
               <span className="text-[#dc2626] text-sm font-semibold uppercase tracking-wider mb-4 block">
                 So funktioniert&apos;s
               </span>
@@ -367,7 +367,7 @@ export default function HomePage() {
             </motion.div>
 
             {/* Steps */}
-            <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <div className="grid sm:grid-cols-3 gap-8 max-w-4xl mx-auto">
               {[
                 { step: "1", title: "Assistent wählen", desc: "Wählen Sie den passenden Branchen-Assistenten aus unserem Marketplace." },
                 { step: "2", title: "Anpassen", desc: "Fügen Sie Ihre FAQ, Preise und Öffnungszeiten hinzu." },
@@ -389,7 +389,7 @@ export default function HomePage() {
       {/* ============================================ */}
       {/* PREISE SECTION */}
       {/* ============================================ */}
-      <section className="py-24">
+      <section className="py-16 sm:py-24">
         <div className="container">
           <motion.div
             initial="hidden"
@@ -411,7 +411,7 @@ export default function HomePage() {
             </motion.div>
 
             {/* Pricing Cards */}
-            <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-5xl mx-auto">
               {preise.map((plan, index) => (
                 <motion.div
                   key={index}
@@ -458,7 +458,7 @@ export default function HomePage() {
       {/* ============================================ */}
       {/* TESTIMONIALS SECTION */}
       {/* ============================================ */}
-      <section className="py-24 bg-white/[0.01]">
+      <section className="py-16 sm:py-24 bg-white/[0.01]">
         <div className="container">
           <motion.div
             initial="hidden"
@@ -467,7 +467,7 @@ export default function HomePage() {
             variants={staggerContainer}
           >
             {/* Section Header */}
-            <motion.div variants={fadeInUp} className="text-center mb-16">
+            <motion.div variants={fadeInUp} className="text-center mb-10 sm:mb-16">
               <span className="text-[#dc2626] text-sm font-semibold uppercase tracking-wider mb-4 block">
                 Kundenstimmen
               </span>
@@ -477,7 +477,7 @@ export default function HomePage() {
             </motion.div>
 
             {/* Testimonials Grid */}
-            <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-5xl mx-auto">
               {testimonials.map((testimonial, index) => (
                 <motion.div
                   key={index}
@@ -504,7 +504,7 @@ export default function HomePage() {
       {/* ============================================ */}
       {/* FAQ SECTION */}
       {/* ============================================ */}
-      <section className="py-24">
+      <section className="py-16 sm:py-24">
         <div className="container max-w-3xl">
           <motion.div
             initial="hidden"
@@ -547,10 +547,10 @@ export default function HomePage() {
       {/* ============================================ */}
       {/* CTA SECTION */}
       {/* ============================================ */}
-      <section className="py-24 relative overflow-hidden">
+      <section className="py-16 sm:py-24 relative overflow-hidden">
         {/* Background */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#dc2626]/10 via-[#dc2626]/5 to-transparent" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#dc2626]/10 rounded-full blur-[200px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] bg-[#dc2626]/10 rounded-full blur-[200px]" />
 
         <div className="container relative z-10">
           <motion.div

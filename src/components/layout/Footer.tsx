@@ -57,20 +57,20 @@ export function Footer() {
 
       {/* CTA Section */}
       <div className="container py-16">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-8 p-8 bg-gradient-to-r from-[#8b5cf6]/10 to-[#3b82f6]/5 rounded-2xl border border-[#8b5cf6]/20">
-          <div>
-            <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-8 p-5 sm:p-8 bg-gradient-to-r from-[#8b5cf6]/10 to-[#3b82f6]/5 rounded-2xl border border-[#8b5cf6]/20">
+          <div className="text-center lg:text-left">
+            <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2">
               Mehr erreichen mit Agentify.
             </h3>
-            <p className="text-white/50">
+            <p className="text-white/50 text-sm sm:text-base">
               Starten Sie noch heute Ihre kostenlose Testversion und erleben Sie den Unterschied.
             </p>
           </div>
-          <div className="flex items-center gap-4">
-            <Button variant="outline" asChild>
+          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full sm:w-auto">
+            <Button variant="outline" asChild className="w-full sm:w-auto">
               <Link href="/capabilities">Mehr erfahren</Link>
             </Button>
-            <Button asChild>
+            <Button asChild className="w-full sm:w-auto">
               <Link href="/register">
                 Agentify starten
                 <ArrowRight className="w-4 h-4" />
@@ -82,7 +82,7 @@ export function Footer() {
 
       {/* Main Footer */}
       <div className="container pb-16">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-10 lg:gap-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
           {/* Brand Column */}
           <div className="col-span-2">
             <Link href="/" className="flex items-center gap-2.5 mb-6">
