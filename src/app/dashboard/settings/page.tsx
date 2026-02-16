@@ -1,532 +1,462 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Skeleton, ListSkeleton } from "@/components/ui/skeleton";
-import { useToast } from "@/components/ui/toast";
 import { getSupabaseBrowser } from "@/lib/supabase/client";
+import type { User } from "@supabase/supabase-js";
+import { motion } from "framer-motion";
 import {
-  User,
+  Bot,
+  BarChart3,
+  Upload,
+  Settings,
+  Shield,
+  Bell,
+  CreditCard,
+  LogOut,
+  ArrowRight,
+  User as UserIcon,
   Mail,
   Lock,
-  Bell,
-  Shield,
   Smartphone,
+  Trash2,
   Eye,
   EyeOff,
-  AlertCircle,
-  CheckCircle2,
-  Save,
-  LogOut,
-  Trash2,
-  ChevronRight,
-  ArrowLeft,
+  LifeBuoy,
 } from "lucide-react";
-import * as Tabs from "@radix-ui/react-tabs";
-import { motion } from "framer-motion";
+
+const navItems = [
+  { label: "Übersicht", href: "/dashboard", icon: BarChart3 },
+  { label: "Meine Agents", href: "/dashboard/agents", icon: Bot },
+  { label: "Integrationen", href: "/dashboard/integrations", icon: Upload },
+  { label: "Einstellungen", href: "/dashboard/settings", icon: Settings },
+  { label: "Abrechnung", href: "/dashboard/billing", icon: CreditCard },
+];
+
+const tabList = [
+  { value: "profile", label: "Profil", icon: UserIcon },
+  { value: "security", label: "Sicherheit", icon: Shield },
+  { value: "notifications", label: "Benachrichtigungen", icon: Bell },
+  { value: "api", label: "API", icon: Lock },
+];
 
 const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 16 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 };
 
-interface UserProfile {
-  email: string;
-  user_metadata?: {
-    full_name?: string;
-    avatar_url?: string;
-  };
-}
+const notificationOptions = [
+  { key: "security", title: "Sicherheitswarnungen" },
+  { key: "newAgent", title: "Neue Agents" },
+  { key: "billing", title: "Billing-Alerts" },
+  { key: "marketing", title: "Marketing-E-Mails" },
+] as const;
+type NotificationKey = (typeof notificationOptions)[number]["key"] | "push" | "weekly";
 
-interface SettingsState {
-  fullName: string;
-  email: string;
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-  showCurrentPassword: boolean;
-  showNewPassword: boolean;
-  twoFactorEnabled: boolean;
-}
+const toggleClasses = (enabled: boolean) =>
+  enabled
+    ? "bg-[#ff3b30]"
+    : "bg-white/10 hover:bg-white/20";
 
-function SettingsContent() {
+export default function SettingsPage() {
   const router = useRouter();
-  const { toast } = useToast();
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
-
-  const [settings, setSettings] = useState<SettingsState>({
-    fullName: "",
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState({
+    company: "",
     email: "",
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-    showCurrentPassword: false,
-    showNewPassword: false,
-    twoFactorEnabled: false,
+    phone: "",
+    address: "",
   });
+  const [password, setPassword] = useState({
+    current: "",
+    next: "",
+    confirm: "",
+    show: false,
+  });
+  const [twoFactor, setTwoFactor] = useState(false);
+  const [notificationPrefs, setNotificationPrefs] = useState<Record<NotificationKey, boolean>>({
+    security: true,
+    newAgent: true,
+    billing: true,
+    marketing: false,
+    push: true,
+    weekly: false,
+  });
+  const [apiKey, setApiKey] = useState("sk_live_••••••••••••");
+  const [webhookUrl, setWebhookUrl] = useState("https://webhook.agentify.ch/events");
 
   useEffect(() => {
     const fetchUser = async () => {
-      try {
-        const supabase = getSupabaseBrowser();
-        const { data: { user }, error } = await supabase.auth.getUser();
-
-        if (error || !user) {
-          router.push("/login");
-          return;
-        }
-
-        setUser(user as UserProfile);
-        setSettings((prev) => ({
-          ...prev,
-          fullName: user.user_metadata?.full_name || "",
-          email: user.email || "",
-        }));
-      } catch (error) {
-        console.error("Error fetching user:", error);
-        toast({
-          title: "Fehler",
-          description: "Benutzerinformationen konnten nicht geladen werden.",
-          variant: "error",
-        });
-      } finally {
-        setIsLoading(false);
+      const supabase = getSupabaseBrowser();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/login");
+        return;
       }
-    };
-
-    fetchUser();
-  }, [router, toast]);
-
-  const handleProfileUpdate = async () => {
-    setIsSaving(true);
-    try {
-      const supabase = getSupabaseBrowser();
-
-      const { error } = await supabase.auth.updateUser({
-        data: { full_name: settings.fullName },
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Erfolg",
-        description: "Profil wurde aktualisiert.",
-        variant: "success",
-      });
-    } catch (error) {
-      toast({
-        title: "Fehler",
-        description: "Profil konnte nicht aktualisiert werden.",
-        variant: "error",
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handlePasswordChange = async () => {
-    if (settings.newPassword !== settings.confirmPassword) {
-      toast({
-        title: "Fehler",
-        description: "Passwörter stimmen nicht überein.",
-        variant: "error",
-      });
-      return;
-    }
-
-    if (settings.newPassword.length < 8) {
-      toast({
-        title: "Fehler",
-        description: "Passwort muss mindestens 8 Zeichen lang sein.",
-        variant: "error",
-      });
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      const supabase = getSupabaseBrowser();
-
-      const { error } = await supabase.auth.updateUser({
-        password: settings.newPassword,
-      });
-
-      if (error) throw error;
-
-      setSettings((prev) => ({
+      setUser(user);
+      setProfile((prev) => ({
         ...prev,
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
+        email: user.email || "",
+        company: user.user_metadata?.company_name || "Agentify GmbH",
       }));
+    };
+    fetchUser();
+  }, [router]);
 
-      toast({
-        title: "Erfolg",
-        description: "Passwort wurde aktualisiert.",
-        variant: "success",
-      });
-    } catch (error) {
-      toast({
-        title: "Fehler",
-        description: "Passwort konnte nicht aktualisiert werden.",
-        variant: "error",
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      const supabase = getSupabaseBrowser();
-      await supabase.auth.signOut();
-      router.push("/login");
-    } catch (error) {
-      toast({
-        title: "Fehler",
-        description: "Abmeldung fehlgeschlagen.",
-        variant: "error",
-      });
-    }
-  };
-
-  const handleAccountDelete = async () => {
-    if (!window.confirm("Sind Sie sicher? Dies kann nicht rückgängig gemacht werden.")) {
-      return;
-    }
-
-    try {
-      const supabase = getSupabaseBrowser();
-      await supabase.auth.signOut();
-      // In production, you'd call an API to delete the user account
-      toast({
-        title: "Erfolg",
-        description: "Konto wurde gelöscht.",
-        variant: "success",
-      });
-      router.push("/");
-    } catch (error) {
-      toast({
-        title: "Fehler",
-        description: "Konto konnte nicht gelöscht werden.",
-        variant: "error",
-      });
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#05050a] flex flex-col">
-        <Header />
-        <div className="flex-1 py-12">
-          <div className="container">
-            <Skeleton className="h-8 w-32 mb-8" />
-            <ListSkeleton count={4} />
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const today = useMemo(() =>
+    new Date().toLocaleDateString("de-CH", { weekday: "long", day: "numeric", month: "long" }),
+    []);
 
   return (
-    <div className="min-h-screen bg-[#05050a] flex flex-col">
-      <Header />
+    <div className="min-h-screen bg-[#05050a] text-white flex">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -left-24 top-12 w-[420px] h-[420px] bg-[#ff3b30]/20 blur-[140px]" />
+        <div className="absolute right-0 bottom-0 w-[360px] h-[360px] bg-[#05050a]/70 border border-white/[0.05] rounded-[200px] blur-[110px]" />
+      </div>
 
-      <motion.main 
+      <motion.aside
+        initial={{ x: -280 }}
+        animate={{ x: 0 }}
+        className="hidden lg:flex flex-col w-[260px] bg-[#05050a] border-r border-white/[0.08] p-6 rounded-tr-[32px] rounded-br-[32px]"
+      >
+        <div className="flex items-center gap-3 mb-10">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#ff3b30] to-[#ff6b5e] flex items-center justify-center">
+            <Bot className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <p className="text-xs uppercase tracking-[0.4em] text-white/60">Agentify</p>
+            <p className="text-base font-semibold">Einstellungen</p>
+          </div>
+        </div>
+        <nav className="flex-1 flex flex-col gap-2">
+          {navItems.map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              className={`flex items-center gap-3 px-3 py-2 rounded-2xl text-sm font-semibold transition-colors ${
+                item.label === "Einstellungen"
+                  ? "bg-[#ff3b30]/10 border-l-2 border-[#ff3b30] text-white"
+                  : "text-white/40 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <item.icon className="w-4 h-4 text-white/60" />
+              <span>{item.label}</span>
+            </Link>
+          ))}
+        </nav>
+        <div className="mt-6">
+          <Button
+            variant="secondary"
+            className="w-full flex items-center justify-center gap-2 rounded-xl"
+            onClick={() => router.push("/dashboard")}
+          >
+            <LogOut className="w-4 h-4" />
+            Zurück zum Dashboard
+          </Button>
+        </div>
+      </motion.aside>
+
+      <div className="lg:hidden w-full">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.05]">
+          <p className="text-xs uppercase tracking-[0.4em] text-white/60">Einstellungen</p>
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-white/60 hover:text-white">
+            Menü
+          </button>
+        </div>
+        {sidebarOpen && (
+          <div className="px-4 py-4 border-b border-white/[0.05]">
+            <nav className="space-y-2">
+              {navItems.map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold text-white/60 hover:text-white hover:bg-white/5"
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <item.icon className="w-4 h-4" />
+                  {item.label}
+                </Link>
+              ))}
+              <Button
+                variant="secondary"
+                className="w-full mt-3 rounded-xl flex items-center justify-center gap-2"
+                onClick={() => router.push("/dashboard")}
+              >
+                <LogOut className="w-4 h-4" />
+                Zurück zum Dashboard
+              </Button>
+            </nav>
+          </div>
+        )}
+      </div>
+
+      <motion.main
         initial="hidden"
         animate="visible"
         variants={fadeInUp}
-        className="flex-1 py-12"
+        className="flex-1 lg:ml-[260px] px-4 py-8 sm:px-6 lg:px-10"
       >
-        <div className="container max-w-4xl">
-          {/* Header */}
-          <div className="mb-8">
-            <Link href="/dashboard" className="inline-flex items-center gap-2 text-white/50 hover:text-white transition-colors mb-4 text-sm">
-              <ArrowLeft className="w-4 h-4" />
-              Zurück zum Dashboard
-            </Link>
-            <h1 className="text-4xl font-bold text-white mb-2">Einstellungen</h1>
-            <p className="text-white/60">Verwalten Sie Ihre Kontoeinstellungen und Präferenzen.</p>
+        <div className="max-w-6xl mx-auto space-y-6">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+            <div>
+              <p className="text-xs uppercase tracking-[0.4em] text-white/40">Einstellungen</p>
+              <h1 className="text-3xl lg:text-4xl font-bold text-white mt-2">Willkommen zurück{user?.user_metadata?.full_name ? `, ${user.user_metadata.full_name}` : ""}!</h1>
+              <p className="text-sm text-white/50">{today}</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                className="rounded-2xl text-xs uppercase tracking-[0.4em] flex items-center gap-2"
+                onClick={() => router.push("/dashboard/agents/new")}
+              >
+                <ArrowRight className="w-4 h-4" />
+                Neuen Agent erstellen
+              </Button>
+              <Button variant="ghost" className="rounded-2xl text-xs uppercase tracking-[0.4em] text-white/60 flex items-center gap-2">
+                <LifeBuoy className="w-4 h-4" />
+                Support
+              </Button>
+            </div>
           </div>
 
-          {/* Tabs */}
-          <Tabs.Root value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <Tabs.List className="flex gap-4 border-b border-white/10 overflow-x-auto">
-              {[
-                { value: "profile", label: "Profil", icon: User },
-                { value: "security", label: "Sicherheit", icon: Shield },
-                { value: "notifications", label: "Benachrichtigungen", icon: Bell },
-                { value: "dangerous", label: "Gefährliche Zone", icon: AlertCircle },
-              ].map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <Tabs.Trigger
-                    key={tab.value}
-                    value={tab.value}
-                    className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-white/60 hover:text-white border-b-2 border-transparent hover:border-white/20 transition-all data-[state=active]:border-[#8b5cf6] data-[state=active]:text-white cursor-pointer"
-                  >
-                    <Icon className="w-4 h-4" />
-                    {tab.label}
-                  </Tabs.Trigger>
-                );
-              })}
-            </Tabs.List>
-
-            {/* Profile Tab */}
-            <Tabs.Content value="profile" className="space-y-6">
-              <Card className="p-6 space-y-6">
-                {/* Full Name */}
-                <div>
-                  <label className="block text-sm font-medium text-white/80 mb-2">
-                    Vollständiger Name
-                  </label>
-                  <input
-                    type="text"
-                    value={settings.fullName}
-                    onChange={(e) => setSettings({ ...settings, fullName: e.target.value })}
-                    placeholder="Ihr Name"
-                    className="w-full px-4 py-2 bg-[#0f0f1a] border border-white/10 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-[#8b5cf6]/50"
-                  />
-                </div>
-
-                {/* Email (read-only) */}
-                <div>
-                  <label className="block text-sm font-medium text-white/80 mb-2">
-                    E-Mail-Adresse
-                  </label>
-                  <div className="flex items-center gap-2 px-4 py-2 bg-[#0f0f1a] border border-white/10 rounded-lg">
-                    <Mail className="w-4 h-4 text-white/50" />
-                    <input
-                      type="email"
-                      value={settings.email}
-                      disabled
-                      className="flex-1 bg-transparent text-white/50 text-sm focus:outline-none"
-                    />
-                  </div>
-                  <p className="text-xs text-white/40 mt-2">
-                    E-Mail kann über den Support geändert werden.
-                  </p>
-                </div>
-
-                <Button onClick={handleProfileUpdate} isLoading={isSaving} className="w-full sm:w-auto">
-                  <Save className="w-4 h-4" />
-                  Änderungen speichern
-                </Button>
-              </Card>
-            </Tabs.Content>
-
-            {/* Security Tab */}
-            <Tabs.Content value="security" className="space-y-6">
-              {/* Change Password */}
-              <Card className="p-6 space-y-6">
-                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                  <Lock className="w-5 h-5 text-[#8b5cf6]" />
-                  Passwort ändern
-                </h3>
-
-                {/* Current Password */}
-                <div>
-                  <label className="block text-sm font-medium text-white/80 mb-2">
-                    Aktuelles Passwort
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={settings.showCurrentPassword ? "text" : "password"}
-                      value={settings.currentPassword}
-                      onChange={(e) => setSettings({ ...settings, currentPassword: e.target.value })}
-                      placeholder="••••••••"
-                      className="w-full px-4 py-2 pr-12 bg-[#0f0f1a] border border-white/10 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-[#8b5cf6]/50"
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setSettings({
-                          ...settings,
-                          showCurrentPassword: !settings.showCurrentPassword,
-                        })
-                      }
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50"
-                    >
-                      {settings.showCurrentPassword ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* New Password */}
-                <div>
-                  <label className="block text-sm font-medium text-white/80 mb-2">
-                    Neues Passwort
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={settings.showNewPassword ? "text" : "password"}
-                      value={settings.newPassword}
-                      onChange={(e) => setSettings({ ...settings, newPassword: e.target.value })}
-                      placeholder="••••••••"
-                      className="w-full px-4 py-2 pr-12 bg-[#0f0f1a] border border-white/10 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-[#8b5cf6]/50"
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setSettings({
-                          ...settings,
-                          showNewPassword: !settings.showNewPassword,
-                        })
-                      }
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50"
-                    >
-                      {settings.showNewPassword ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Confirm Password */}
-                <div>
-                  <label className="block text-sm font-medium text-white/80 mb-2">
-                    Passwort bestätigen
-                  </label>
-                  <input
-                    type={settings.showNewPassword ? "text" : "password"}
-                    value={settings.confirmPassword}
-                    onChange={(e) => setSettings({ ...settings, confirmPassword: e.target.value })}
-                    placeholder="••••••••"
-                    className="w-full px-4 py-2 bg-[#0f0f1a] border border-white/10 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-[#8b5cf6]/50"
-                  />
-                </div>
-
-                <Button
-                  onClick={handlePasswordChange}
-                  isLoading={isSaving}
-                  className="w-full sm:w-auto"
+          <div className="bg-[#12121c] border border-white/[0.08] rounded-2xl">
+            <div className="flex divide-x divide-white/[0.08] overflow-x-auto">
+              {tabList.map((tab) => (
+                <button
+                  key={tab.value}
+                  onClick={() => setActiveTab(tab.value)}
+                  className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold transition-colors whitespace-nowrap ${
+                    activeTab === tab.value
+                      ? "text-white border-b-2 border-[#ff3b30]"
+                      : "text-white/50"
+                  }`}
                 >
-                  <Lock className="w-4 h-4" />
-                  Passwort ändern
-                </Button>
-              </Card>
+                  <tab.icon className="w-4 h-4" />
+                  {tab.label}
+                </button>
+              ))}
+            </div>
 
-              {/* Two-Factor Authentication */}
-              <Card className="p-6">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-white flex items-center gap-2 mb-2">
-                      <Smartphone className="w-5 h-5 text-[#8b5cf6]" />
-                      Zwei-Faktor-Authentifizierung
-                    </h3>
-                    <p className="text-sm text-white/60">
-                      Erhöhen Sie die Sicherheit Ihres Kontos mit 2FA.
-                    </p>
-                  </div>
-                  <Button variant="secondary" size="sm">
-                    {settings.twoFactorEnabled ? "Deaktivieren" : "Aktivieren"}
-                  </Button>
-                </div>
-              </Card>
-            </Tabs.Content>
-
-            {/* Notifications Tab */}
-            <Tabs.Content value="notifications" className="space-y-6">
-              <Card className="p-6 space-y-4">
-                {[
-                  {
-                    title: "Sicherheitswarnungen",
-                    description: "Benachrichtigungen über verdächtige Aktivitäten",
-                  },
-                  {
-                    title: "Neue Agents",
-                    description: "Benachrichtigungen über neue AI Agents",
-                  },
-                  {
-                    title: "Billing-Alerts",
-                    description: "Benachrichtigungen über Rechnungen",
-                  },
-                  {
-                    title: "Marketing-E-Mails",
-                    description: "Neuigkeiten und Angebote",
-                  },
-                ].map((notification, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-white/[0.02] rounded-lg border border-white/5">
-                    <div>
-                      <p className="text-sm font-medium text-white">{notification.title}</p>
-                      <p className="text-xs text-white/50">{notification.description}</p>
+            <div className="p-6 space-y-6">
+              {activeTab === "profile" && (
+                <motion.section key="profile" initial="hidden" animate="visible" variants={fadeInUp} className="space-y-6">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2 bg-[#12121c]/40 rounded-xl border border-white/[0.06] p-4">
+                      <p className="text-xs text-white/50 uppercase tracking-[0.3em]">Firma</p>
+                      <input
+                        type="text"
+                        value={profile.company}
+                        onChange={(e) => setProfile((prev) => ({ ...prev, company: e.target.value }))}
+                        placeholder="Agentify AG"
+                        className="w-full bg-[#12121c] border border-white/[0.08] rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-[#ff3b30]/50"
+                      />
                     </div>
-                    <button className="relative w-12 h-7 bg-white/10 border border-white/20 rounded-full transition-all hover:bg-[#8b5cf6]/30">
-                      <div className="absolute inset-0.5 bg-[#8b5cf6] rounded-full w-3 h-3 left-1 transition-all" />
+                    <div className="space-y-2 bg-[#12121c]/40 rounded-xl border border-white/[0.06] p-4">
+                      <p className="text-xs text-white/50 uppercase tracking-[0.3em]">E-Mail</p>
+                      <div className="flex items-center gap-2 px-4 py-2 bg-[#12121c] border border-white/[0.08] rounded-xl">
+                        <Mail className="w-4 h-4 text-white/50" />
+                        <span className="text-sm text-white/60">{profile.email}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2 bg-[#12121c]/40 rounded-xl border border-white/[0.06] p-4">
+                      <p className="text-xs text-white/50 uppercase tracking-[0.3em]">Telefon</p>
+                      <input
+                        type="tel"
+                        value={profile.phone}
+                        onChange={(e) => setProfile((prev) => ({ ...prev, phone: e.target.value }))}
+                        placeholder="+41 44 000 00 00"
+                        className="w-full bg-[#12121c] border border-white/[0.08] rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-[#ff3b30]/50"
+                      />
+                    </div>
+                    <div className="space-y-2 bg-[#12121c]/40 rounded-xl border border-white/[0.06] p-4">
+                      <p className="text-xs text-white/50 uppercase tracking-[0.3em]">Adresse</p>
+                      <input
+                        type="text"
+                        value={profile.address}
+                        onChange={(e) => setProfile((prev) => ({ ...prev, address: e.target.value }))}
+                        placeholder="Bahnhofstrasse 1, 8001 Zürich"
+                        className="w-full bg-[#12121c] border border-white/[0.08] rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-[#ff3b30]/50"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-[#12121c]/40 rounded-xl border border-white/[0.06] p-4 flex flex-col gap-3">
+                    <p className="text-sm font-semibold">Profilbild</p>
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-2xl bg-white/10 border border-white/[0.08] flex items-center justify-center">
+                        <UserIcon className="w-6 h-6 text-white/60" />
+                      </div>
+                      <Button variant="secondary" className="rounded-2xl px-4">
+                        Bild hochladen
+                      </Button>
+                    </div>
+                  </div>
+
+                  <Button className="rounded-2xl px-6">Änderungen speichern</Button>
+                </motion.section>
+              )}
+
+              {activeTab === "security" && (
+                <motion.section key="security" initial="hidden" animate="visible" variants={fadeInUp} className="space-y-6">
+                  <div className="space-y-4 border-b border-white/[0.06] pb-4">
+                    <h3 className="text-lg font-semibold">Passwort ändern</h3>
+                    <div className="grid gap-4 md:grid-cols-3">
+                      {[
+                        { label: "Aktuelles Passwort", value: password.current, name: "current" },
+                        { label: "Neues Passwort", value: password.next, name: "next" },
+                        { label: "Passwort bestätigen", value: password.confirm, name: "confirm" },
+                      ].map((field) => (
+                        <div key={field.label} className="space-y-2 bg-[#12121c]/40 rounded-xl border border-white/[0.06] p-4">
+                          <label className="text-xs text-white/60 uppercase tracking-[0.3em]">{field.label}</label>
+                          <div className="relative">
+                            <input
+                              type={password.show ? "text" : "password"}
+                              name={field.name}
+                              value={field.value}
+                              onChange={(e) => setPassword((prev) => ({ ...prev, [field.name]: e.target.value }))}
+                              placeholder="••••••••"
+                              className="w-full bg-[#12121c] border border-white/[0.08] rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-[#ff3b30]/50"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setPassword((prev) => ({ ...prev, show: !prev.show }))}
+                              className="absolute right-3 top-[50%] -translate-y-1/2 text-white/50"
+                            >
+                              {password.show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <Button className="rounded-2xl px-6">Passwort speichern</Button>
+                  </div>
+
+                  <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <Smartphone className="w-5 h-5 text-[#ff3b30]" />
+                        Zwei-Faktor-Authentifizierung
+                      </h3>
+                      <p className="text-sm text-white/60">Aktivieren Sie eine zusätzliche Sicherheitsebene.</p>
+                    </div>
+                    <button
+                      onClick={() => setTwoFactor((prev) => !prev)}
+                      className={`relative w-12 h-6 rounded-full transition-all ${toggleClasses(twoFactor)}`}
+                    >
+                      <span
+                        className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-all ${
+                          twoFactor ? "translate-x-6" : ""
+                        }`}
+                      />
                     </button>
                   </div>
-                ))}
-              </Card>
-            </Tabs.Content>
 
-            {/* Dangerous Zone */}
-            <Tabs.Content value="dangerous" className="space-y-6">
-              {/* Logout All Devices */}
-              <Card className="p-6 border border-[#f59e0b]/20 bg-[#f59e0b]/5">
-                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                  <AlertCircle className="w-5 h-5 text-[#f59e0b]" />
-                  Aus allen Geräten abmelden
-                </h3>
-                <p className="text-sm text-white/60 mb-4">
-                  Sie werden aus allen aktiven Sitzungen abgemeldet.
-                </p>
-                <Button variant="secondary" className="border-[#f59e0b]/30">
-                  <LogOut className="w-4 h-4" />
-                  Abmelden
-                </Button>
-              </Card>
+                  <div className="bg-[#12121c]/40 rounded-xl border border-white/[0.06] p-4 space-y-3">
+                    <h4 className="text-sm font-semibold text-white">Aktive Sitzungen</h4>
+                    {[
+                      "Desktop • Zürich",
+                      "Web • Remote Work",
+                      "iOS App • Zug",
+                    ].map((session) => (
+                      <div key={session} className="flex items-center justify-between text-xs text-white/60">
+                        <span>{session}</span>
+                        <span className="text-white/40">Vor 2h</span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.section>
+              )}
 
-              {/* Delete Account */}
-              <Card className="p-6 border border-[#ff3b30]/20 bg-[#ff3b30]/5">
-                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                  <Trash2 className="w-5 h-5 text-[#ff3b30]" />
-                  Konto löschen
-                </h3>
-                <p className="text-sm text-white/60 mb-4">
-                  Dies wird Ihr Konto und alle zugehörigen Daten dauerhaft löschen.
-                  Dies kann nicht rückgängig gemacht werden.
-                </p>
-                <Button
-                  variant="destructive"
-                  onClick={handleAccountDelete}
-                  className="border-[#ff3b30]/30"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Konto löschen
-                </Button>
-              </Card>
-            </Tabs.Content>
-          </Tabs.Root>
+              {activeTab === "notifications" && (
+                <motion.section key="notifications" initial="hidden" animate="visible" variants={fadeInUp} className="space-y-4">
+                  {notificationOptions.map((item) => (
+                    <div key={item.key} className="flex items-center justify-between bg-[#12121c]/40 border border-white/[0.06] rounded-xl px-4 py-3">
+                      <div>
+                        <p className="text-sm font-semibold text-white">{item.title}</p>
+                        <p className="text-xs text-white/50">Erhalten Sie E-Mail-Updates.</p>
+                      </div>
+                      <button
+                        onClick={() =>
+                          setNotificationPrefs((prev) => ({
+                            ...prev,
+                            [item.key]: !prev[item.key],
+                          }))
+                        }
+                        className={`relative w-12 h-6 rounded-full transition-all ${toggleClasses(notificationPrefs[item.key])}`}
+                      >
+                        <span
+                          className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-all ${
+                            notificationPrefs[item.key] ? "translate-x-6" : ""
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  ))}
+                  <div className="flex items-center justify-between bg-[#12121c]/40 border border-white/[0.06] rounded-xl px-4 py-3">
+                    <div>
+                      <p className="text-sm font-semibold text-white">Push-Benachrichtigungen</p>
+                      <p className="text-xs text-white/50">Erhalte sofortige Alerts auf dem Gerät.</p>
+                    </div>
+                    <button
+                      onClick={() => setNotificationPrefs((prev) => ({ ...prev, push: !prev.push }))}
+                      className={`relative w-12 h-6 rounded-full transition-all ${toggleClasses(notificationPrefs.push)}`}
+                    >
+                      <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-all ${notificationPrefs.push ? "translate-x-6" : ""}`} />
+                    </button>
+                  </div>
+                  <div className="flex items-center justify-between bg-[#12121c]/40 border border-white/[0.06] rounded-xl px-4 py-3">
+                    <div>
+                      <p className="text-sm font-semibold text-white">Wöchentlicher Bericht</p>
+                      <p className="text-xs text-white/50">Zusammenfassung direkt in Ihr Postfach.</p>
+                    </div>
+                    <button
+                      onClick={() => setNotificationPrefs((prev) => ({ ...prev, weekly: !prev.weekly }))}
+                      className={`relative w-12 h-6 rounded-full transition-all ${toggleClasses(notificationPrefs.weekly)}`}
+                    >
+                      <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-all ${notificationPrefs.weekly ? "translate-x-6" : ""}`} />
+                    </button>
+                  </div>
+                </motion.section>
+              )}
+
+              {activeTab === "api" && (
+                <motion.section key="api" initial="hidden" animate="visible" variants={fadeInUp} className="space-y-4">
+                  <div className="bg-[#12121c]/40 border border-white/[0.06] rounded-2xl p-4 space-y-3">
+                    <p className="text-xs text-white/50 uppercase tracking-[0.3em]">API Key</p>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="text"
+                        value={apiKey}
+                        readOnly
+                        className="flex-1 bg-[#05050a] border border-white/[0.08] rounded-xl px-4 py-2 text-sm text-white tracking-widest"
+                      />
+                      <Button variant="secondary" className="rounded-xl px-4">Neuen Key generieren</Button>
+                    </div>
+                    <p className="text-xs text-white/40">Bewahren Sie diesen Schlüssel sicher auf. Er wird nicht erneut angezeigt.</p>
+                  </div>
+                  <div className="bg-[#12121c]/40 border border-white/[0.06] rounded-2xl p-4">
+                    <p className="text-xs text-white/50 uppercase tracking-[0.3em]">Webhook URL</p>
+                    <input
+                      type="url"
+                      value={webhookUrl}
+                      onChange={(e) => setWebhookUrl(e.target.value)}
+                      placeholder="https://example.com/webhook"
+                      className="w-full bg-[#05050a] border border-white/[0.08] rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-[#ff3b30]/50"
+                    />
+                    <p className="text-xs text-white/40 mt-2">Wir versenden Update-Events an diese URL.</p>
+                  </div>
+                </motion.section>
+              )}
+            </div>
+          </div>
         </div>
       </motion.main>
-
-      <Footer />
     </div>
-  );
-}
-
-export default function SettingsPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[#05050a] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#8b5cf6]/30 border-t-[#8b5cf6] rounded-full animate-spin" />
-      </div>
-    }>
-      <SettingsContent />
-    </Suspense>
   );
 }
