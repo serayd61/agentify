@@ -10,14 +10,11 @@ import { useToast } from "@/components/ui/toast";
 import {
   ArrowLeft,
   Plus,
-  Check,
   AlertCircle,
   Settings,
-  Copy,
   Zap,
   Mail,
   MessageCircle,
-  Smartphone,
   Send,
   Gamepad2,
   Code2,
@@ -268,10 +265,7 @@ function IntegrationModal({
 }
 
 export default function IntegrationsPage() {
-  const { toast } = useToast();
-  const [connectedIntegrations, setConnectedIntegrations] = useState(
-    integrations.filter((i) => i.connected)
-  );
+  const connectedIntegrations = integrations.filter((i) => i.connected);
   const [selectedIntegration, setSelectedIntegration] =
     useState<Integration | null>(null);
 

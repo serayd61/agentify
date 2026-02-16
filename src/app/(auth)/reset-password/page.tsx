@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { 
-  Zap, Lock, Eye, EyeOff, ArrowRight, AlertCircle, CheckCircle2, 
-  Info, ArrowLeft, Check
+  Lock, Eye, EyeOff, ArrowRight, AlertCircle, CheckCircle2, 
+  ArrowLeft, Check
 } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase/client";
 import { motion } from "framer-motion";
@@ -42,14 +42,13 @@ function ResetPasswordForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [supabaseReady, setSupabaseReady] = useState(isSupabaseConfigured());
+  const supabaseReady = isSupabaseConfigured();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [validToken, setValidToken] = useState(true);
   const [passwordStrength, setPasswordStrength] = useState(0);
 
   useEffect(() => {
-    setSupabaseReady(isSupabaseConfigured());
     // Check if we have a valid recovery token
     if (!searchParams.get('code')) {
       setValidToken(false);

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { getSupabaseBrowser } from "@/lib/supabase/client";
-import type { User } from "@supabase/supabase-js";
 import { motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -54,9 +53,12 @@ const statsData: StatCard[] = [
   { label: "Verfügbarkeit", value: "98%", icon: Shield, accent: "#ffd60a" },
 ];
 
+const formatLastActivity = (updatedAt?: string) =>
+  updatedAt ? new Date(updatedAt).toLocaleDateString("de-CH") : "Noch keine Aktivität";
+
+
 export default function AgentsPage() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [agents, setAgents] = useState<CustomerAgent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,7 +72,6 @@ export default function AgentsPage() {
         router.push("/login");
         return;
       }
-      setUser(user);
 
       const { data: customerData } = await supabase
         .from("customers")
@@ -97,6 +98,13 @@ export default function AgentsPage() {
     new Date().toLocaleDateString("de-CH", { weekday: "long", day: "numeric", month: "long" }),
     [],
   );
+
+  const customerLabel = useMemo(() => {
+    if (!customer) return null;
+    if (customer.company_name) return customer.company_name;
+    const names = [customer.first_name, customer.last_name].filter(Boolean);
+    return names.length > 0 ? names.join(" ") : "Kunde";
+  }, [customer]);
 
   const badgeColor = (status: string) =>
     status === "active" ? "bg-[#34c759]/20 text-[#34c759]" : "bg-white/10 text-white/60";
@@ -190,7 +198,12 @@ export default function AgentsPage() {
             <div>
               <p className="text-xs uppercase tracking-[0.4em] text-white/40">Agent Dashboard</p>
               <h1 className="text-3xl lg:text-4xl font-bold text-white mt-3">Meine Agents</h1>
-              <p className="text-sm text-white/50 mt-1">{today}</p>
+              <p className="text-sm text-white/50 mt-1">
+                {loading ? "Daten werden geladen..." : today}
+              </p>
+              {customerLabel && (
+                <p className="text-xs text-white/40 mt-1">Account: {customerLabel}</p>
+              )}
             </div>
             <div className="flex items-center gap-3">
               <Button
@@ -274,7 +287,7 @@ export default function AgentsPage() {
                 </div>
 
                 <div className="text-xs text-white/40">
-                  Letzte Aktivität: {new Date(agent.updated_at || Date.now()).toLocaleDateString("de-CH")}
+                  Letzte Aktivität: {formatLastActivity(agent.updated_at)}
                 </div>
 
                 <div className="flex flex-wrap gap-2">

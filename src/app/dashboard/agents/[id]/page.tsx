@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -19,7 +19,6 @@ import {
   Trash2,
   Copy,
   Check,
-  AlertCircle,
   Zap,
 } from "lucide-react";
 import * as Tabs from "@radix-ui/react-tabs";
@@ -57,12 +56,10 @@ const defaultAgent: Agent = {
 };
 
 export default function AgentEditorPage() {
-  const router = useRouter();
   const params = useParams();
   const { toast } = useToast();
   const [agent, setAgent] = useState<Agent>(defaultAgent);
   const [isSaving, setIsSaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("general");
   const [copied, setCopied] = useState(false);
 
@@ -81,7 +78,6 @@ export default function AgentEditorPage() {
           "Du bist ein erfahrener Treuhand-Assistent mit Expertise in Schweizer Steuern und Buchhaltung.",
       });
     }
-    setIsLoading(false);
   }, [params.id]);
 
   const handleSave = async () => {
@@ -94,7 +90,7 @@ export default function AgentEditorPage() {
         description: "Agent-Einstellungen wurden gespeichert.",
         variant: "success",
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Fehler",
         description: "Agent konnte nicht gespeichert werden.",

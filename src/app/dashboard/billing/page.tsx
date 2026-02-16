@@ -9,16 +9,11 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/toast";
 import {
   ArrowLeft,
-  CreditCard,
   Download,
   ArrowRight,
   Check,
-  AlertCircle,
   Calendar,
-  TrendingUp,
-  Zap,
   Settings,
-  Plus,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -277,7 +272,7 @@ export default function BillingPage() {
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <p className="text-white/80">Nachrichten</p>
-                        <p className="text-sm text-white/60">3'456 / 10'000</p>
+                        <p className="text-sm text-white/60">3&apos;456 / 10&apos;000</p>
                       </div>
                       <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                         <div

@@ -166,7 +166,7 @@ async function runWorkflow(filePath: string): Promise<void> {
 
     // Print task summary
     console.log('\n--- Task Summary ---');
-    for (const [_taskId, task] of Object.entries(execution.tasks)) {
+    for (const [, task] of Object.entries(execution.tasks)) {
       const statusIcon = task.status === 'completed' ? '✓' : task.status === 'failed' ? '✗' : '○';
       const statusColor = task.status === 'completed' ? 'green' : task.status === 'failed' ? 'red' : 'gray';
       log(`${statusIcon} ${task.name} (${task.duration || 0}ms)`, statusColor);

@@ -43,23 +43,11 @@ const navItems = [
   { label: "Abrechnung", icon: CreditCard, href: "/dashboard/billing" },
 ];
 
-const statsData = [
-  { label: "Aktive Agents", value: "0", icon: Bot, accent: "#ff3b30" },
-  { label: "Nachrichten heute", value: "0", icon: MessageSquare, accent: "#007aff" },
-  { label: "Gespräche diese Woche", value: "0", icon: Users, accent: "#34c759" },
-  { label: "Kundenzufriedenheit", value: "89%", icon: CheckCircle2, accent: "#ffd60a" },
-];
-
 const sampleActivities = [
   { title: "Agent \"Muster\" gestartet", time: "vor 2h" },
   { title: "Widget-Code kopiert", time: "vor 4h" },
   { title: "Neues Ticket erstellt", time: "gestern" },
 ];
-
-const panelVariant = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.55 } },
-};
 
 const formVariant = {
   hidden: { opacity: 0, y: 25 },
@@ -118,6 +106,24 @@ export default function DashboardPage() {
     day: "numeric",
     month: "long",
   }), []);
+
+  const customerLabel = useMemo(() => {
+    if (!customer) return null;
+    if (customer.company_name) return customer.company_name;
+    const names = [customer.first_name, customer.last_name].filter(Boolean);
+    return names.length > 0 ? names.join(" ") : "Agentify Kunde";
+  }, [customer]);
+
+  const heroSubtitle = loading ? "Daten werden geladen..." : today;
+
+  const activeAgents = useMemo(() => agents.filter((agent) => agent.status === "active").length, [agents]);
+
+  const statsData = useMemo(() => [
+    { label: "Aktive Agents", value: `${activeAgents}`, icon: Bot, accent: "#ff3b30" },
+    { label: "Nachrichten heute", value: "0", icon: MessageSquare, accent: "#007aff" },
+    { label: "Gespräche diese Woche", value: "0", icon: Users, accent: "#34c759" },
+    { label: "Kundenzufriedenheit", value: "89%", icon: CheckCircle2, accent: "#ffd60a" },
+  ], [activeAgents]);
 
   return (
     <div className="min-h-screen bg-[#05050a] text-white">
@@ -226,7 +232,10 @@ export default function DashboardPage() {
                   <h1 className="text-3xl lg:text-4xl font-bold text-white mt-2">
                     Willkommen zurück{user?.user_metadata?.full_name ? `, ${user.user_metadata.full_name}` : ""} 👋
                   </h1>
-                  <p className="text-sm text-white/50 mt-1">{today}</p>
+                  <p className="text-sm text-white/50 mt-1">{heroSubtitle}</p>
+                  {customerLabel && (
+                    <p className="text-xs text-white/40 mt-1">Account: {customerLabel}</p>
+                  )}
                 </div>
                 <div className="flex items-center gap-3">
                   <Button

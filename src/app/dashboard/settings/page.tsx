@@ -21,7 +21,6 @@ import {
   Mail,
   Lock,
   Smartphone,
-  Trash2,
   Eye,
   EyeOff,
   LifeBuoy,
@@ -86,7 +85,7 @@ export default function SettingsPage() {
     push: true,
     weekly: false,
   });
-  const [apiKey, setApiKey] = useState("sk_live_••••••••••••");
+  const [apiKey] = useState("sk_live_••••••••••••");
   const [webhookUrl, setWebhookUrl] = useState("https://webhook.agentify.ch/events");
 
   useEffect(() => {

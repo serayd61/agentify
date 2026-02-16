@@ -13,10 +13,8 @@ import {
   Calendar,
   Clock,
   Shield,
-  Sparkles,
   Phone,
   FileText,
-  ChevronRight,
 } from "lucide-react";
 
 const fadeIn = {

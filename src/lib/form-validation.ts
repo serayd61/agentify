@@ -72,8 +72,8 @@ export interface FormErrors {
 }
 
 export function validateFormData(
-  data: Record<string, any>,
-  rules: Record<string, (value: any) => string | null>
+  data: Record<string, unknown>,
+  rules: Record<string, (value: unknown) => string | null>
 ): FormErrors {
   const errors: FormErrors = {};
 
@@ -91,7 +91,7 @@ export function validateFormData(
  * Common validation rules
  */
 export const ValidationRules = {
-  required: (fieldName: string) => (value: any) => {
+  required: (fieldName: string) => (value: unknown) => {
     if (!value || (typeof value === "string" && !value.trim())) {
       return `${fieldName} ist erforderlich`;
     }
@@ -122,7 +122,7 @@ export const ValidationRules = {
     return null;
   },
 
-  match: (value: any, matchValue: any, fieldName = "Feld") => {
+  match: (value: unknown, matchValue: unknown, fieldName = "Feld") => {
     if (value !== matchValue) {
       return `${fieldName} stimmt nicht überein`;
     }

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import React from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -13,8 +13,6 @@ import {
   Users,
   Clock,
   ThumbsUp,
-  BarChart3,
-  LineChart,
   CalendarDays,
   Download,
 } from "lucide-react";
@@ -187,7 +185,6 @@ function FeedbackTable() {
 
 export default function AgentAnalyticsPage() {
   const params = useParams();
-  const router = useRouter();
 
   return (
     <div className="min-h-screen bg-[#05050a] flex flex-col">

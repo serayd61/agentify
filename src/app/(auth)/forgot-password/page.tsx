@@ -4,8 +4,7 @@ import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { 
-  Zap, Mail, ArrowRight, AlertCircle, CheckCircle2, 
-  Info, ArrowLeft
+  Mail, ArrowRight, AlertCircle, CheckCircle2, ArrowLeft, Info
 } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase/client";
 import { motion } from "framer-motion";
@@ -26,7 +25,7 @@ const fadeInUp = {
 function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [supabaseReady, setSupabaseReady] = useState(isSupabaseConfigured());
+  const supabaseReady = isSupabaseConfigured();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 

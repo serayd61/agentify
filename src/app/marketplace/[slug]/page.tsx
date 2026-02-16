@@ -12,17 +12,10 @@ import {
   ArrowLeft,
   Star,
   Users,
-  TrendingUp,
-  Shield,
   Zap,
   Check,
-  ArrowRight,
-  Copy,
   Share2,
   Heart,
-  MessageSquare,
-  Clock,
-  BarChart3,
   AlertCircle,
 } from "lucide-react";
 import { motion } from "framer-motion";

@@ -168,7 +168,7 @@ function LoginForm() {
               <Shield className="w-5 h-5 text-[#ff3b30]" />
               <div>
                 <p className="text-[10px] uppercase tracking-[0.4em] text-white/40">Savings</p>
-                <p className="text-lg font-semibold">CHF 6'000 / Jahr</p>
+                <p className="text-lg font-semibold">CHF 6&apos;000 / Jahr</p>
               </div>
             </div>
             <div className="flex items-center gap-3">

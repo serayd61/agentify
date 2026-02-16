@@ -131,7 +131,7 @@ export class WorkflowOrchestrator {
 
         // Execute success callbacks
         if (task.on_success && taskExecution.status === 'completed') {
-          await this.executeCallbacks(task.on_success, execution);
+          await this.executeCallbacks(task.on_success);
         }
       } else {
         this.failed.add(task.id);
@@ -139,7 +139,7 @@ export class WorkflowOrchestrator {
 
         // Execute failure callbacks
         if (task.on_failure) {
-          await this.executeCallbacks(task.on_failure, execution);
+          await this.executeCallbacks(task.on_failure);
         }
       }
     } catch (error) {
@@ -160,8 +160,7 @@ export class WorkflowOrchestrator {
   }
 
   private async executeCallbacks(
-    callbackIds: string[],
-    _execution: WorkflowExecution
+    callbackIds: string[]
   ): Promise<void> {
     // Callbacks are task IDs to trigger
     // In a full implementation, these would be looked up and executed

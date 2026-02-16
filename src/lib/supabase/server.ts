@@ -10,6 +10,7 @@ function isSupabaseConfigured(): boolean {
 }
 
 // Mock client for when Supabase is not configured
+/* eslint-disable @typescript-eslint/no-unused-vars */
 function getMockClient() {
   return {
     auth: {
@@ -47,6 +48,9 @@ function getMockClient() {
     }),
   };
 }
+
+/* eslint-enable @typescript-eslint/no-unused-vars */
+
 
 // Create Supabase client with async cookie handling
 export function createServerClient() {
