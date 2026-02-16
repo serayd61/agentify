@@ -70,7 +70,7 @@ export default function RegisterPage() {
 
     try {
       const supabase = getSupabaseBrowser();
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
@@ -88,6 +88,14 @@ export default function RegisterPage() {
             : signUpError.message
         );
         return;
+      }
+
+      if (signUpData?.user?.id) {
+        await supabase.from("customers").upsert({
+          auth_user_id: signUpData.user.id,
+          email: formData.email,
+          company_name: formData.companyName,
+        }, { onConflict: "auth_user_id" });
       }
 
       setSuccess(true);
