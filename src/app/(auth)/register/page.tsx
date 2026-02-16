@@ -1,35 +1,51 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { 
-  Zap, Mail, Lock, User, Building2, ArrowRight, Eye, EyeOff, 
-  Check, Sparkles, AlertCircle, Info
+import { motion } from "framer-motion";
+import {
+  Zap,
+  Mail,
+  Lock,
+  Check,
+  AlertCircle,
+  ArrowRight,
+  Info,
+  Sparkles,
+  Building2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase/client";
 
-// Check if Supabase is configured
-const isSupabaseConfigured = () => {
-  return Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && 
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const isSupabaseConfigured = () =>
+  Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   );
+
+const panelVariant = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.55 } },
+};
+
+const formVariant = {
+  hidden: { opacity: 0, y: 25 },
+  visible: { opacity: 1, y: 0, transition: { delay: 0.1, duration: 0.55 } },
 };
 
 export default function RegisterPage() {
   const [supabaseReady, setSupabaseReady] = useState(true);
-  
   const [formData, setFormData] = useState({
     companyName: "",
-    firstName: "",
-    lastName: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -44,13 +60,16 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!agreedToTerms) return;
-    
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwörter stimmen nicht überein.");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
       const supabase = getSupabaseBrowser();
-      
       const { error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -58,158 +77,146 @@ export default function RegisterPage() {
           emailRedirectTo: `${window.location.origin}/api/auth/callback`,
           data: {
             company_name: formData.companyName,
-            first_name: formData.firstName,
-            last_name: formData.lastName,
           },
         },
       });
 
       if (signUpError) {
-        if (signUpError.message.includes('already registered')) {
-          setError('Diese E-Mail-Adresse ist bereits registriert.');
-        } else {
-          setError(signUpError.message);
-        }
+        setError(
+          signUpError.message.includes("already registered")
+            ? "Diese E-Mail-Adresse ist bereits registriert."
+            : signUpError.message
+        );
         return;
       }
 
       setSuccess(true);
     } catch {
-      setError('Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
+      setError("Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleSignUp = async () => {
-    setIsLoading(true);
-    setError(null);
+  const advantages = useMemo(
+    () => [
+      "Swiss Made · DSG-konformes Hosting",
+      "Marketplace, Builder und Widget in einem Hub",
+      "Supabase + Stripe Automation",
+      "24/7 KI-Service und Analytics",
+    ],
+    []
+  );
 
-    try {
-      const supabase = getSupabaseBrowser();
-      
-      const { error: oauthError } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/api/auth/callback`,
-        },
-      });
-
-      if (oauthError) {
-        setError(oauthError.message);
-      }
-    } catch {
-      setError('Google-Registrierung fehlgeschlagen.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const passwordStrength = () => {
-    const pwd = formData.password;
-    let strength = 0;
-    if (pwd.length >= 8) strength++;
-    if (/[A-Z]/.test(pwd)) strength++;
-    if (/[0-9]/.test(pwd)) strength++;
-    if (/[^A-Za-z0-9]/.test(pwd)) strength++;
-    return strength;
-  };
-
-  const strengthColors = ["#ff3b30", "#ff9500", "#ffd60a", "#34c759"];
-  const strengthLabels = ["Schwach", "Mittel", "Gut", "Stark"];
-
-  // Success state
   if (success) {
     return (
       <div className="min-h-screen bg-[#05050a] flex items-center justify-center p-4">
-        <div className="w-full max-w-md text-center">
-          <div className="w-20 h-20 mx-auto mb-8 rounded-2xl bg-[#34c759]/20 border border-[#34c759]/30 flex items-center justify-center">
-            <Check className="w-10 h-10 text-[#34c759]" />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4 }}
+          className="w-full max-w-md rounded-[28px] border border-white/[0.08] bg-[#05050a]/95 p-8 shadow-2xl"
+        >
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="w-20 h-20 rounded-2xl bg-[#34c759]/10 border border-[#34c759]/30 flex items-center justify-center">
+              <Check className="w-10 h-10 text-[#34c759]" />
+            </div>
+            <h1 className="text-3xl font-bold text-white">Fast fertig!</h1>
+            <p className="text-sm text-white/60">
+              Wir haben einen Bestätigungslink an <span className="text-white font-semibold">{formData.email}</span> gesendet.
+              Folge dem Link, um dein Agentify-Konto zu aktivieren.
+            </p>
+            <Button variant="secondary" asChild>
+              <Link href="/login">Zur Anmeldung</Link>
+            </Button>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-4 font-[family-name:var(--font-display)]">
-            Überprüfen Sie Ihre E-Mail
-          </h1>
-          <p className="text-white/60 mb-8">
-            Wir haben Ihnen einen Bestätigungslink an <span className="text-white">{formData.email}</span> gesendet.
-            Bitte klicken Sie auf den Link, um Ihr Konto zu aktivieren.
-          </p>
-          <Button variant="secondary" asChild>
-            <Link href="/login">Zurück zur Anmeldung</Link>
-          </Button>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#05050a] flex">
-      {/* Left Panel - Form */}
-      <div className="flex-1 flex items-center justify-center p-6 md:p-8 lg:p-12 relative overflow-y-auto">
-        <div className="absolute inset-0 bg-grid opacity-20 pointer-events-none" />
-        
-        <div className="w-full max-w-[420px] relative z-10">
-          {/* Logo */}
-          <Link href="/" className="inline-flex items-center gap-3 mb-8">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-[#ff3b30] to-[#ff9500] rounded-xl blur-lg opacity-50" />
-              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-[#ff3b30] to-[#ff6b5e] flex items-center justify-center">
-                <Zap className="w-5 h-5 text-white" />
-              </div>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-lg font-bold text-white tracking-tight">
-                Agentify
-              </span>
-              <span className="text-[9px] font-semibold text-white/40 -mt-1 tracking-[0.2em] uppercase">
-                Swiss
-              </span>
-            </div>
-          </Link>
+    <div className="min-h-screen bg-[#05050a] flex items-stretch">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -left-16 top-10 w-[420px] h-[420px] bg-[#ff3b30]/20 blur-[150px]" />
+        <div className="absolute right-0 bottom-0 w-[360px] h-[360px] bg-[#05050a]/60 border border-white/[0.05] rounded-[200px] blur-[110px]" />
+      </div>
 
-          {/* Header */}
-          <div className="mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
-              Konto erstellen
-            </h1>
-            <p className="text-sm text-white/50">
-              Starten Sie mit Ihrem eigenen KI-Assistenten.
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        className="relative z-10 w-full max-w-6xl mx-auto grid gap-4 lg:grid-cols-[1.05fr_0.95fr] rounded-[32px] border border-white/[0.08] bg-gradient-to-br from-[#05050a]/90 via-[#0b0b11] to-[#05050a]/95 shadow-2xl overflow-hidden m-4"
+      >
+        <motion.div
+          variants={panelVariant}
+          className="hidden lg:flex flex-col justify-evenly gap-6 bg-gradient-to-br from-[#ff3b30] via-[#dd1c19] to-[#c11b21] px-10 py-12 text-white"
+        >
+          <div>
+            <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full border border-white/[0.3] text-[10px] font-semibold uppercase tracking-[0.4em]">
+              <Sparkles className="w-4 h-4 text-white" />
+              Agentify Vorteile
+            </div>
+            <h2 className="mt-6 text-3xl font-bold leading-snug">
+              KI-Assistenten für Schweizer KMU.
+            </h2>
+            <p className="text-sm text-white/80 mt-3 max-w-sm">
+              Marketplace, Builder Bot, Widget und Billing laufen in einem Interface. DSGVO und Swiss Hosting inklusive.
             </p>
           </div>
+          <div className="space-y-4">
+            {advantages.map((item) => (
+              <div key={item} className="flex items-start gap-3 text-sm">
+                <span className="w-8 h-8 rounded-2xl bg-white/20 border border-white/[0.5] flex items-center justify-center">
+                  <Check className="w-4 h-4 text-[#34c759]" />
+                </span>
+                <p className="text-white/90 leading-relaxed">{item}</p>
+              </div>
+            ))}
+          </div>
+        </motion.div>
 
-          {/* Supabase Not Configured Warning */}
+        <motion.div
+          variants={formVariant}
+          className="px-6 py-8 sm:px-8 sm:py-10"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#ff3b30] to-[#ff6b5e] flex items-center justify-center">
+              <Zap className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white">Registrieren</h1>
+              <p className="text-xs text-white/60">In wenigen Minuten dein Agentify-Konto aufsetzen.</p>
+            </div>
+          </div>
+
           {!supabaseReady && (
-            <div className="mb-4 p-4 bg-[#f59e0b]/10 border border-[#f59e0b]/30 rounded-lg">
-              <div className="flex items-start gap-3">
-                <Info className="w-5 h-5 text-[#f59e0b] shrink-0 mt-0.5" />
+            <div className="mb-4 p-4 rounded-2xl bg-[#f59e0b]/10 border border-[#f59e0b]/30 text-xs text-[#f59e0b]">
+              <div className="flex items-start gap-2">
+                <Info className="w-5 h-5 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-[#f59e0b] mb-1">Demo-Modus</p>
-                  <p className="text-xs text-[#f59e0b]/80">
-                    Die Registrierung ist derzeit nicht verfügbar. Bitte kontaktieren Sie uns für einen Zugang.
-                  </p>
+                  <p className="font-semibold">Demo-Modus</p>
+                  <p>Supabase ist noch nicht konfiguriert. Bitte Kontakt aufnehmen für Freischaltung.</p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Error Message */}
           {error && (
-            <div className="mb-4 p-3 bg-[#ff3b30]/10 border border-[#ff3b30]/30 rounded-lg flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-[#ff3b30] shrink-0" />
-              <p className="text-xs text-[#ff3b30]">{error}</p>
+            <div className="mb-4 p-3 rounded-2xl bg-[#ff3b30]/10 border border-[#ff3b30]/30 flex items-center gap-2 text-xs text-[#ff3b30]">
+              <AlertCircle className="w-4 h-4" />
+              {error}
             </div>
           )}
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-3">
-            {/* Company Name */}
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="companyName" className="block text-xs font-medium text-white/60 mb-1.5">
-                Firmenname
+              <label htmlFor="companyName" className="text-[11px] font-semibold uppercase tracking-[0.4em] text-white/60">
+                Firma
               </label>
-              <div className="relative">
-                <div className="absolute left-0 top-0 bottom-0 w-10 flex items-center justify-center pointer-events-none">
-                  <Building2 className="w-4 h-4 text-white/30" />
-                </div>
+              <div className="relative mt-2">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-white/30">
+                  <Building2 className="w-4 h-4" />
+                </span>
                 <input
                   id="companyName"
                   name="companyName"
@@ -217,151 +224,100 @@ export default function RegisterPage() {
                   value={formData.companyName}
                   onChange={handleChange}
                   placeholder="Muster AG"
-                  className="w-full h-11 pl-10 pr-3 bg-[#12121c] border border-white/[0.08] rounded-lg text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[#ff3b30]/50 focus:ring-2 focus:ring-[#ff3b30]/20 transition-all"
+                  className="w-full h-12 pl-12 pr-4 bg-[#12121c] border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/30 focus:border-[#ff3b30]/50 focus:ring-1 focus:ring-[#ff3b30]/40 transition-all"
                   required
                 />
               </div>
             </div>
 
-            {/* Name Fields */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label htmlFor="firstName" className="block text-xs font-medium text-white/60 mb-1.5">
-                  Vorname
-                </label>
-                <div className="relative">
-                  <div className="absolute left-0 top-0 bottom-0 w-10 flex items-center justify-center pointer-events-none">
-                    <User className="w-4 h-4 text-white/30" />
-                  </div>
-                  <input
-                    id="firstName"
-                    name="firstName"
-                    type="text"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    placeholder="Max"
-                    className="w-full h-11 pl-10 pr-3 bg-[#12121c] border border-white/[0.08] rounded-lg text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[#ff3b30]/50 focus:ring-2 focus:ring-[#ff3b30]/20 transition-all"
-                    required
-                  />
-                </div>
-              </div>
-              <div>
-                <label htmlFor="lastName" className="block text-xs font-medium text-white/60 mb-1.5">
-                  Nachname
-                </label>
-                <input
-                  id="lastName"
-                  name="lastName"
-                  type="text"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  placeholder="Muster"
-                  className="w-full h-11 px-3 bg-[#12121c] border border-white/[0.08] rounded-lg text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[#ff3b30]/50 focus:ring-2 focus:ring-[#ff3b30]/20 transition-all"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-xs font-medium text-white/60 mb-1.5">
-                E-Mail-Adresse
+              <label htmlFor="email" className="text-[11px] font-semibold uppercase tracking-[0.4em] text-white/60">
+                E-Mail
               </label>
-              <div className="relative">
-                <div className="absolute left-0 top-0 bottom-0 w-10 flex items-center justify-center pointer-events-none">
-                  <Mail className="w-4 h-4 text-white/30" />
-                </div>
+              <div className="relative mt-2">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-white/30">
+                  <Mail className="w-4 h-4" />
+                </span>
                 <input
                   id="email"
                   name="email"
                   type="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="ihre@email.ch"
-                  className="w-full h-11 pl-10 pr-3 bg-[#12121c] border border-white/[0.08] rounded-lg text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[#ff3b30]/50 focus:ring-2 focus:ring-[#ff3b30]/20 transition-all"
+                  placeholder="kontakt@firma.ch"
+                  className="w-full h-12 pl-12 pr-4 bg-[#12121c] border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/30 focus:border-[#ff3b30]/50 focus:ring-1 focus:ring-[#ff3b30]/40 transition-all"
                   required
                 />
               </div>
             </div>
 
-            {/* Password */}
-            <div>
-              <label htmlFor="password" className="block text-xs font-medium text-white/60 mb-1.5">
-                Passwort
-              </label>
-              <div className="relative">
-                <div className="absolute left-0 top-0 bottom-0 w-10 flex items-center justify-center pointer-events-none">
-                  <Lock className="w-4 h-4 text-white/30" />
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label htmlFor="password" className="text-[11px] font-semibold uppercase tracking-[0.4em] text-white/60">
+                  Passwort
+                </label>
+                <div className="relative mt-2">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-white/30">
+                    <Lock className="w-4 h-4" />
+                  </span>
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="Mindestens 8 Zeichen"
+                    minLength={8}
+                    className="w-full h-12 pl-12 pr-12 bg-[#12121c] border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/30 focus:border-[#ff3b30]/50 focus:ring-1 focus:ring-[#ff3b30]/40 transition-all"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-white/30 hover:text-white"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
+              </div>
+
+              <div>
+                <label htmlFor="confirmPassword" className="text-[11px] font-semibold uppercase tracking-[0.4em] text-white/60">
+                  Passwort bestätigen
+                </label>
                 <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  value={formData.password}
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  value={formData.confirmPassword}
                   onChange={handleChange}
-                  placeholder="Mindestens 8 Zeichen"
-                  className="w-full h-11 pl-10 pr-10 bg-[#12121c] border border-white/[0.08] rounded-lg text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[#ff3b30]/50 focus:ring-2 focus:ring-[#ff3b30]/20 transition-all"
+                  placeholder="Passwort wiederholen"
+                  className="w-full h-12 mt-2 px-3 bg-[#12121c] border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/30 focus:border-[#ff3b30]/50 focus:ring-1 focus:ring-[#ff3b30]/40 transition-all"
                   required
-                  minLength={8}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-0 top-0 bottom-0 w-10 flex items-center justify-center text-white/30 hover:text-white/60 transition-colors"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
               </div>
-              {formData.password && (
-                <div className="mt-2">
-                  <div className="flex gap-1 mb-1">
-                    {[0, 1, 2, 3].map((i) => (
-                      <div
-                        key={i}
-                        className="h-1 flex-1 rounded-full transition-colors"
-                        style={{
-                          backgroundColor: i < passwordStrength() ? strengthColors[passwordStrength() - 1] : "rgba(255,255,255,0.1)"
-                        }}
-                      />
-                    ))}
-                  </div>
-                  <p className="text-[10px] text-white/40">
-                    Stärke: <span style={{ color: strengthColors[passwordStrength() - 1] || "rgba(255,255,255,0.4)" }}>{strengthLabels[passwordStrength() - 1] || "Sehr schwach"}</span>
-                  </p>
-                </div>
-              )}
             </div>
 
-            {/* Terms */}
-            <div className="flex items-start gap-2.5 pt-1">
+            <div className="flex items-start gap-2">
               <button
                 type="button"
                 onClick={() => setAgreedToTerms(!agreedToTerms)}
-                className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 mt-0.5 transition-all ${
+                className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
                   agreedToTerms
                     ? "bg-[#ff3b30] border-[#ff3b30]"
-                    : "border-white/20 hover:border-white/40"
+                    : "border-white/[0.18] hover:border-white/60"
                 }`}
               >
-                {agreedToTerms && <Check className="w-2.5 h-2.5 text-white" />}
+                {agreedToTerms && <span className="w-2 h-2 bg-white rounded-sm" />}
               </button>
-              <p className="text-xs text-white/50 leading-relaxed">
-                Ich akzeptiere die{" "}
-                <Link href="/terms" className="text-[#ff3b30] hover:underline">
-                  AGB
-                </Link>{" "}
-                und die{" "}
-                <Link href="/privacy" className="text-[#ff3b30] hover:underline">
-                  Datenschutzerklärung
-                </Link>
-                .
+              <p className="text-xs text-white/50 leading-tight">
+                Ich akzeptiere die <Link href="/terms" className="text-[#ff3b30] hover:underline">AGB</Link> und die <Link href="/privacy" className="text-[#ff3b30] hover:underline">Datenschutzerklärung</Link>.
               </p>
             </div>
 
-            {/* Submit */}
             <Button
               type="submit"
-              className="w-full h-11 mt-2"
+              className="w-full h-12 rounded-xl flex items-center justify-center gap-2 text-sm"
               isLoading={isLoading}
               disabled={!agreedToTerms || !supabaseReady}
             >
@@ -370,22 +326,35 @@ export default function RegisterPage() {
             </Button>
           </form>
 
-          {/* Divider */}
-          <div className="relative my-5">
+          <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/[0.06]" />
+              <div className="w-full border-t border-white/[0.08]" />
             </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="px-3 bg-[#05050a] text-white/30">oder</span>
+            <div className="relative flex justify-center">
+              <span className="bg-[#05050a] px-3 text-[11px] uppercase tracking-[0.4em] text-white/40">oder</span>
             </div>
           </div>
 
-          {/* Social Login */}
-          <Button 
-            variant="secondary" 
-            className="w-full h-11"
-            onClick={handleGoogleSignUp}
-            disabled={isLoading || !supabaseReady}
+          <Button
+            variant="secondary"
+            className="w-full h-12 rounded-xl flex items-center justify-center gap-3 border border-white/[0.08]"
+            onClick={async () => {
+              setIsLoading(true);
+              setError(null);
+              try {
+                const supabase = getSupabaseBrowser();
+                const { error: oauthError } = await supabase.auth.signInWithOAuth({
+                  provider: "google",
+                  options: { redirectTo: `${window.location.origin}/api/auth/callback` },
+                });
+                if (oauthError) setError(oauthError.message);
+              } catch {
+                setError("Google-Registrierung fehlgeschlagen.");
+              } finally {
+                setIsLoading(false);
+              }
+            }}
+            disabled={!supabaseReady || isLoading}
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path
@@ -408,54 +377,11 @@ export default function RegisterPage() {
             Mit Google registrieren
           </Button>
 
-          {/* Login Link */}
-          <p className="text-center mt-5 text-sm text-white/50">
-            Bereits ein Konto?{" "}
-            <Link href="/login" className="text-[#ff3b30] hover:text-[#ff6b5e] font-medium transition-colors">
-              Anmelden
-            </Link>
+          <p className="mt-6 text-center text-xs text-white/40">
+            Bereits ein Konto? <Link href="/login" className="text-[#ff3b30] hover:text-[#ff6b5e] font-semibold">Anmelden</Link>
           </p>
-        </div>
-      </div>
-
-      {/* Right Panel - Branding (hidden on mobile and tablet) */}
-      <div className="hidden xl:flex w-[500px] relative overflow-hidden shrink-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#ff3b30] via-[#ff5840] to-[#ff9500]" />
-        <div className="absolute inset-0 swiss-cross opacity-20" />
-        
-        <div className="absolute top-1/4 left-1/4 w-[250px] h-[250px] bg-white/20 rounded-full blur-[80px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-[180px] h-[180px] bg-black/20 rounded-full blur-[60px]" />
-        
-        <div className="relative z-10 flex flex-col items-center justify-center p-10 text-white text-center w-full">
-          <div className="w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center mb-6">
-            <Sparkles className="w-10 h-10" />
-          </div>
-          <h2 className="text-2xl font-bold mb-3 leading-tight">
-            Jetzt kostenlos
-            <br />
-            starten
-          </h2>
-          <p className="text-white/80 text-sm leading-relaxed mb-8 max-w-[280px]">
-            Erstellen Sie Ihren ersten KI-Assistenten in wenigen Minuten. 14 Tage kostenlos testen.
-          </p>
-          
-          <div className="space-y-2.5 w-full max-w-[280px]">
-            {[
-              "Keine Kreditkarte erforderlich",
-              "In 5 Minuten einsatzbereit",
-              "14 Tage Geld-zurück-Garantie",
-              "Schweizer Datenhaltung",
-            ].map((benefit, i) => (
-              <div key={i} className="flex items-center gap-3 p-2.5 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
-                <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center shrink-0">
-                  <Check className="w-3.5 h-3.5" />
-                </div>
-                <span className="text-white/90 text-sm">{benefit}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }
