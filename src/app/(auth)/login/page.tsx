@@ -1,21 +1,35 @@
 "use client";
 
-import React, { useState, Suspense, useEffect } from "react";
+import React, { useState, Suspense, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { 
-  Zap, Mail, Lock, ArrowRight, Eye, EyeOff, 
-  Shield, AlertCircle, CheckCircle2, Info
+import { motion } from "framer-motion";
+import {
+  Zap,
+  Mail,
+  Lock,
+  ArrowRight,
+  Eye,
+  EyeOff,
+  Shield,
+  AlertCircle,
+  CheckCircle2,
+  Info,
+  Sparkles,
 } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase/client";
 
-// Check if Supabase is configured
 const isSupabaseConfigured = () => {
   return Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && 
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   );
+};
+
+const cardVariant = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.55 } },
 };
 
 function LoginForm() {
@@ -24,14 +38,14 @@ function LoginForm() {
   const redirectTo = searchParams.get("redirect") || "/dashboard";
   const registered = searchParams.get("registered");
   const [supabaseReady, setSupabaseReady] = useState(true);
-  
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -49,25 +63,25 @@ function LoginForm() {
 
     try {
       const supabase = getSupabaseBrowser();
-      
+
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
 
       if (signInError) {
-        if (signInError.message.includes('Invalid login')) {
-          setError('E-Mail oder Passwort ist falsch.');
-        } else {
-          setError(signInError.message);
-        }
+        setError(
+          signInError.message.includes("Invalid login")
+            ? "E-Mail oder Passwort ist falsch."
+            : signInError.message
+        );
         return;
       }
 
       router.push(redirectTo);
       router.refresh();
     } catch {
-      setError('Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
+      setError("Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.");
     } finally {
       setIsLoading(false);
     }
@@ -79,9 +93,9 @@ function LoginForm() {
 
     try {
       const supabase = getSupabaseBrowser();
-      
+
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+        provider: "google",
         options: {
           redirectTo: `${window.location.origin}/api/auth/callback?redirect=${redirectTo}`,
         },
@@ -91,228 +105,215 @@ function LoginForm() {
         setError(oauthError.message);
       }
     } catch {
-      setError('Google-Anmeldung fehlgeschlagen.');
+      setError("Google-Anmeldung fehlgeschlagen.");
     } finally {
       setIsLoading(false);
     }
   };
 
+  const highlights = useMemo(
+    () => [
+      "DSG-konformes Hosting in der Schweiz",
+      "Enterprise-Sicherheit + 99.9% Uptime",
+      "Marketplace, Builder & Widget in einem Interface",
+    ],
+    []
+  );
+
   return (
-    <div className="min-h-screen bg-[#05050a] flex">
-      {/* Left Panel - Branding (hidden on mobile and tablet) */}
-      <div className="hidden xl:flex w-[500px] relative overflow-hidden shrink-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#007aff] via-[#0055d4] to-[#0a2885]" />
-        <div className="absolute inset-0 swiss-cross opacity-10" />
-        
-        <div className="absolute top-1/3 right-0 w-[300px] h-[300px] bg-white/10 rounded-full blur-[100px]" />
-        <div className="absolute bottom-1/4 left-1/4 w-[200px] h-[200px] bg-[#007aff]/30 rounded-full blur-[80px]" />
-        
-        <div className="relative z-10 flex flex-col justify-center p-12 text-white w-full">
-          <div className="w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center mb-8">
-            <Shield className="w-10 h-10" />
-          </div>
-          <h2 className="text-3xl font-bold mb-4 leading-tight">
-            Willkommen
-            <br />
-            zurück
-          </h2>
-          <p className="text-white/70 text-base leading-relaxed mb-10 max-w-sm">
-            Melden Sie sich an, um Ihre KI-Assistenten zu verwalten und Ihr Unternehmen zu automatisieren.
-          </p>
-          
-          <div className="space-y-4 max-w-sm">
-            {[
-              { title: "Enterprise-Sicherheit", desc: "ISO 27001 zertifizierte Infrastruktur" },
-              { title: "Schweizer Hosting", desc: "Alle Daten bleiben in der Schweiz" },
-              { title: "24/7 Verfügbarkeit", desc: "99.9% Uptime garantiert" },
-            ].map((item, i) => (
-              <div key={i} className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center shrink-0 mt-0.5">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <p className="font-semibold text-white text-sm">{item.title}</p>
-                  <p className="text-white/60 text-xs">{item.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+    <div className="min-h-screen bg-[#05050a] flex items-center justify-center px-4 py-12">
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -left-20 top-16 w-[420px] h-[420px] bg-[#ff3b30]/20 blur-[160px]" />
+        <div className="absolute right-0 top-1/4 w-[360px] h-[360px] bg-[#05050a]/70 border border-white/[0.05] rounded-[200px] blur-[110px]" />
       </div>
 
-      {/* Right Panel - Form */}
-      <div className="flex-1 flex items-center justify-center p-6 md:p-8 lg:p-12 relative">
-        <div className="absolute inset-0 bg-grid opacity-20 pointer-events-none" />
-        
-        <div className="w-full max-w-[400px] relative z-10">
-          {/* Logo */}
-          <Link href="/" className="inline-flex items-center gap-3 mb-10">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-[#ff3b30] to-[#ff9500] rounded-xl blur-lg opacity-50" />
-              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-[#ff3b30] to-[#ff6b5e] flex items-center justify-center">
-                <Zap className="w-5 h-5 text-white" />
-              </div>
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        className="relative z-10 w-full max-w-6xl grid gap-4 lg:grid-cols-[1.1fr_0.9fr] rounded-[32px] border border-white/[0.08] bg-gradient-to-br from-[#05050a]/90 via-[#0c0c12] to-[#05050a]/95 shadow-2xl overflow-hidden"
+      >
+        <motion.div
+          variants={cardVariant}
+          className="relative px-8 py-10 lg:px-11 lg:py-12 bg-[#05050a]/80 border-r border-white/[0.04]"
+        >
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-3 px-4 py-1 rounded-full border border-white/[0.12] text-[10px] font-semibold uppercase tracking-[0.4em] text-white/60">
+              <Sparkles className="w-4 h-4 text-[#ff3b30]" />
+              Swiss Agents
             </div>
-            <div className="flex flex-col">
-              <span className="text-lg font-bold text-white tracking-tight">
-                Agentify
-              </span>
-              <span className="text-[9px] font-semibold text-white/40 -mt-1 tracking-[0.2em] uppercase">
-                Swiss
-              </span>
-            </div>
-          </Link>
 
-          {/* Header */}
-          <div className="mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
-              Anmelden
-            </h1>
-            <p className="text-sm text-white/50">
-              Geben Sie Ihre Anmeldedaten ein, um fortzufahren.
+            <h2 className="text-3xl md:text-4xl font-bold text-white leading-snug">
+              Alle Agents in einer Plattform.
+              <br />
+              Von Marketplace bis Widget.
+            </h2>
+
+            <p className="text-sm text-white/60 max-w-xl">
+              Agentify verbindet Builder Bot, Marketplace, Supabase & Stripe in einem Schweizer Produktiv-Stack.
+              Verwalten Sie Kampagnen, Push-Konfigurationen und Abonnements ohne mehrere Tools.
             </p>
           </div>
 
-          {/* Success Message */}
+          <div className="mt-10 space-y-4">
+            {highlights.map((item, index) => (
+              <div key={index} className="flex items-center gap-3 text-sm text-white/70">
+                <span className="w-2 h-2 rounded-full bg-[#ff3b30]" />
+                {item}
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-12 pt-6 border-t border-white/[0.08] text-white/70">
+            <div className="flex items-center gap-3 mb-3">
+              <Shield className="w-5 h-5 text-[#ff3b30]" />
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.4em] text-white/40">Savings</p>
+                <p className="text-lg font-semibold">CHF 6'000 / Jahr</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Shield className="w-5 h-5 text-[#ff3b30]" />
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.4em] text-white/40">Time saved</p>
+                <p className="text-lg font-semibold">320h / Jahr</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          variants={cardVariant}
+          className="px-6 py-8 sm:px-8 sm:py-10"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#ff3b30] to-[#ff754f] flex items-center justify-center">
+              <Zap className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white">Jetzt einloggen</h1>
+              <p className="text-xs text-white/50">Fahre deine Agentify-Konsole hoch.</p>
+            </div>
+          </div>
+
           {registered && (
-            <div className="mb-4 p-3 bg-[#34c759]/10 border border-[#34c759]/30 rounded-lg flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[#34c759] shrink-0" />
-              <p className="text-xs text-[#34c759]">
-                Registrierung erfolgreich! Bitte melden Sie sich an.
-              </p>
+            <div className="mb-4 p-3 rounded-2xl bg-[#34c759]/10 border border-[#34c759]/30 flex items-center gap-2 text-xs text-[#34c759]">
+              <CheckCircle2 className="w-4 h-4" /> Registrierung erfolgreich. Bitte einloggen.
             </div>
           )}
 
-          {/* Supabase Not Configured Warning */}
           {!supabaseReady && (
-            <div className="mb-4 p-4 bg-[#f59e0b]/10 border border-[#f59e0b]/30 rounded-lg">
-              <div className="flex items-start gap-3">
-                <Info className="w-5 h-5 text-[#f59e0b] shrink-0 mt-0.5" />
+            <div className="mb-4 p-4 rounded-2xl bg-[#f59e0b]/10 border border-[#f59e0b]/30 text-xs text-[#f59e0b]">
+              <div className="flex items-start gap-2">
+                <Info className="w-5 h-5 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-[#f59e0b] mb-1">Demo-Modus</p>
-                  <p className="text-xs text-[#f59e0b]/80">
-                    Die Anmeldung ist derzeit nicht verfügbar. Bitte kontaktieren Sie uns für einen Zugang.
-                  </p>
+                  <p className="font-semibold">Demo-Modus</p>
+                  <p>Supabase fehlt. Bitte Admin kontaktieren für Vollzugang.</p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Error Message */}
           {error && (
-            <div className="mb-4 p-3 bg-[#ff3b30]/10 border border-[#ff3b30]/30 rounded-lg flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-[#ff3b30] shrink-0" />
-              <p className="text-xs text-[#ff3b30]">{error}</p>
+            <div className="mb-4 p-3 rounded-2xl bg-[#ff3b30]/10 border border-[#ff3b30]/30 flex items-center gap-2 text-xs text-[#ff3b30]">
+              <AlertCircle className="w-4 h-4" />
+              {error}
             </div>
           )}
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-xs font-medium text-white/60 mb-1.5">
-                E-Mail-Adresse
+              <label className="text-[11px] font-semibold uppercase tracking-[0.4em] text-white/60" htmlFor="email">
+                E-Mail
               </label>
-              <div className="relative">
-                <div className="absolute left-0 top-0 bottom-0 w-11 flex items-center justify-center pointer-events-none">
-                  <Mail className="w-4 h-4 text-white/30" />
-                </div>
+              <div className="relative mt-2">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-white/30">
+                  <Mail className="w-4 h-4" />
+                </span>
                 <input
                   id="email"
                   name="email"
                   type="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="ihre@email.ch"
-                  className="w-full h-12 pl-11 pr-4 bg-[#12121c] border border-white/[0.08] rounded-lg text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[#007aff]/50 focus:ring-2 focus:ring-[#007aff]/20 transition-all"
+                  placeholder="name@firma.ch"
+                  className="w-full h-12 pl-12 pr-4 bg-[#12121c] border border-white/[0.08] rounded-2xl text-sm text-white placeholder:text-white/30 focus:border-[#ff3b30] focus:ring-1 focus:ring-[#ff3b30]/40 transition-all"
                   required
                 />
               </div>
             </div>
 
-            {/* Password */}
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label htmlFor="password" className="block text-xs font-medium text-white/60">
-                  Passwort
-                </label>
-                <Link 
-                  href="/forgot-password" 
-                  className="text-xs text-[#007aff] hover:text-[#3395ff] transition-colors"
-                >
+              <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.4em] text-white/60">
+                <label htmlFor="password">Passwort</label>
+                <Link href="/forgot-password" className="text-xs text-[#ff3b30] hover:text-[#ff6b5e]">
                   Passwort vergessen?
                 </Link>
               </div>
-              <div className="relative">
-                <div className="absolute left-0 top-0 bottom-0 w-11 flex items-center justify-center pointer-events-none">
-                  <Lock className="w-4 h-4 text-white/30" />
-                </div>
+              <div className="relative mt-2">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-white/30">
+                  <Lock className="w-4 h-4" />
+                </span>
                 <input
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="Ihr Passwort"
-                  className="w-full h-12 pl-11 pr-11 bg-[#12121c] border border-white/[0.08] rounded-lg text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[#007aff]/50 focus:ring-2 focus:ring-[#007aff]/20 transition-all"
+                  placeholder="••••••••••"
+                  className="w-full h-12 pl-12 pr-12 bg-[#12121c] border border-white/[0.08] rounded-2xl text-sm text-white placeholder:text-white/30 focus:border-[#ff3b30] focus:ring-1 focus:ring-[#ff3b30]/40 transition-all"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-0 top-0 bottom-0 w-11 flex items-center justify-center text-white/30 hover:text-white/60 transition-colors"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-white/40 hover:text-white"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            {/* Remember Me */}
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center justify-between">
               <button
                 type="button"
                 onClick={() => setRememberMe(!rememberMe)}
-                className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
+                className={`w-4 h-4 rounded-lg border flex items-center justify-center transition-all ${
                   rememberMe
-                    ? "bg-[#007aff] border-[#007aff]"
-                    : "border-white/20 hover:border-white/40"
+                    ? "bg-[#ff3b30] border-[#ff3b30]"
+                    : "border-white/[0.18] hover:border-white/60"
                 }`}
               >
-                {rememberMe && (
-                  <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                )}
+                {rememberMe && <span className="w-2 h-2 bg-white rounded-sm" />}
               </button>
               <span className="text-xs text-white/50">Angemeldet bleiben</span>
+              <div className="text-xs text-white/40">
+                Brauchst du Hilfe? <Link href="/contact" className="text-[#ff3b30] underline">Support</Link>
+              </div>
             </div>
 
-            {/* Submit */}
             <Button
               type="submit"
-              className="w-full h-12"
+              className="w-full h-12 text-sm rounded-2xl flex items-center justify-center gap-2"
               isLoading={isLoading}
               disabled={!supabaseReady}
             >
-              Anmelden
+              Einloggen
               <ArrowRight className="w-4 h-4" />
             </Button>
           </form>
 
-          {/* Divider */}
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/[0.06]" />
+              <div className="w-full border-t border-white/[0.08]" />
             </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="px-3 bg-[#05050a] text-white/30">oder</span>
+            <div className="relative flex justify-center">
+              <span className="bg-[#05050a] px-3 text-[11px] uppercase tracking-[0.4em] text-white/40">oder</span>
             </div>
           </div>
 
-          {/* Social Login */}
-          <Button 
-            variant="secondary" 
-            className="w-full h-12"
+          <Button
+            variant="secondary"
+            className="w-full h-12 rounded-2xl flex items-center justify-center gap-3 border border-white/[0.08]"
             onClick={handleGoogleSignIn}
             disabled={isLoading || !supabaseReady}
           >
@@ -337,26 +338,24 @@ function LoginForm() {
             Mit Google anmelden
           </Button>
 
-          {/* Register Link */}
-          <p className="text-center mt-6 text-sm text-white/50">
-            Noch kein Konto?{" "}
-            <Link href="/register" className="text-[#007aff] hover:text-[#3395ff] font-medium transition-colors">
-              Jetzt registrieren
-            </Link>
+          <p className="mt-6 text-center text-xs text-white/40">
+            Noch kein Account? <Link href="/register" className="text-[#ff3b30] font-semibold">Registrieren</Link>
           </p>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[#05050a] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#ff3b30]/30 border-t-[#ff3b30] rounded-full animate-spin" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#05050a] flex items-center justify-center">
+          <div className="w-10 h-10 border-2 border-white/20 border-t-[#ff3b30] rounded-full animate-spin" />
+        </div>
+      }
+    >
       <LoginForm />
     </Suspense>
   );
