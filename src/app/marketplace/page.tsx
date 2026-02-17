@@ -77,11 +77,11 @@ function MarketplaceContent() {
   const hasActiveFilters = selectedCategory || searchQuery || priceRange;
 
   return (
-    <div className="min-h-screen bg-[#05050a] flex flex-col">
+    <div className="min-h-screen bg-surface text-white flex flex-col">
       <Header />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-16 relative overflow-hidden flex-1">
+      <section className="pt-32 pb-16 relative overflow-hidden flex-1 bg-gradient-to-b from-[#05050a] to-[#05050a]">
         {/* Video Background */}
         <div className="absolute inset-0 z-0">
           <video
@@ -95,7 +95,8 @@ function MarketplaceContent() {
           >
             <source src="/videos/agentcalismaanimasyonu.mp4" type="video/mp4" />
           </video>
-          <div className="absolute inset-0 bg-gradient-to-b from-[#05050a]/50 via-[#05050a]/40 to-[#05050a]/80" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,59,48,0.3),_transparent_45%)]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#05050a]/90" />
         </div>
 
         <div className="container relative z-10">
@@ -135,7 +136,7 @@ function MarketplaceContent() {
             <aside className="hidden lg:block w-72 shrink-0">
               <div className="sticky top-28 space-y-6">
                 {/* Categories */}
-                <div className="bg-[#12121c] rounded-2xl border border-white/[0.08] p-6">
+                <div className="bg-card rounded-2xl border border-white/[0.08] p-6">
                   <h3 className="text-xs font-semibold text-white/50 uppercase tracking-[0.2em] mb-5">
                     Kategorien
                   </h3>
@@ -174,7 +175,7 @@ function MarketplaceContent() {
                 </div>
 
                 {/* Price Filter */}
-                <div className="bg-[#12121c] rounded-2xl border border-white/[0.08] p-6">
+                <div className="bg-card rounded-2xl border border-white/[0.08] p-6">
                   <h3 className="text-xs font-semibold text-white/50 uppercase tracking-[0.2em] mb-5">
                     Preis
                   </h3>
@@ -380,7 +381,7 @@ function MarketplaceContent() {
 
 function LoadingFallback() {
   return (
-    <div className="min-h-screen bg-[#05050a] flex items-center justify-center">
+    <div className="min-h-screen bg-surface flex items-center justify-center">
       <Loader2 className="w-8 h-8 animate-spin text-[#ff3b30]" />
     </div>
   );

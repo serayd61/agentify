@@ -147,11 +147,12 @@ export default function SupportPage() {
   const activeQuestions = faqCategories.find((c) => c.id === activeCategory)?.questions || [];
 
   return (
-    <div className="min-h-screen bg-[#05050a] flex flex-col">
+    <div className="min-h-screen bg-surface text-white flex flex-col">
       <Header />
 
-      <section className="pt-32 pb-20 flex-1">
-        <div className="container max-w-6xl">
+      <section className="pt-32 pb-20 flex-1 relative overflow-hidden bg-gradient-to-b from-[#05050a] to-[#05050a]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,59,255,0.25),_transparent_55%)]" />
+        <div className="container relative z-10 max-w-6xl">
           {/* Header */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#3b82f6]/10 border border-[#3b82f6]/20 text-[#60a5fa] text-sm font-medium mb-6">

@@ -66,11 +66,12 @@ export default function ContactPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#05050a] flex flex-col">
+    <div className="min-h-screen bg-surface text-white flex flex-col">
       <Header />
 
-      <section className="pt-32 pb-20 flex-1">
-        <div className="container max-w-6xl">
+      <section className="pt-32 pb-20 flex-1 relative overflow-hidden bg-gradient-to-b from-[#05050a] to-[#05050a]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,59,48,0.25),_transparent_50%)]" />
+        <div className="container relative z-10 max-w-6xl">
           {/* Header */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#dc2626]/10 border border-[#dc2626]/20 text-[#ff6b5e] text-sm font-medium mb-6">

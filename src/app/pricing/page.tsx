@@ -190,11 +190,11 @@ export default function PricingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#05050a] flex flex-col">
+    <div className="min-h-screen bg-surface text-white flex flex-col">
       <Header />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 relative overflow-hidden">
+      <section className="pt-32 pb-20 relative overflow-hidden bg-gradient-to-b from-[#05050a] to-[#05050a]">
         {/* Video Background */}
         <div className="absolute inset-0 z-0">
           <video
@@ -208,7 +208,8 @@ export default function PricingPage() {
           >
             <source src="/videos/swisstechshowcase.mp4" type="video/mp4" />
           </video>
-          <div className="absolute inset-0 bg-gradient-to-b from-[#05050a]/50 via-[#05050a]/40 to-[#05050a]/80" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,59,48,0.25),_transparent_45%)]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#05050a]/90" />
         </div>
 
         <div className="container relative z-10">
@@ -259,7 +260,7 @@ export default function PricingPage() {
           </div>
 
           {/* Pricing Cards */}
-          <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-3 gap-8 grid-container max-w-6xl mx-auto">
             {tiers.map((tier) => (
               <div key={tier.id} className="relative">
                 {tier.popular && (
