@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
 import { Loader2 } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
 
 const supabase = createClient();
 
@@ -22,10 +23,12 @@ interface AgentRow {
 
 export default function AgentsPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [agents, setAgents] = useState<AgentRow[]>([]);
   const [usageMap, setUsageMap] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [copiedAgentId, setCopiedAgentId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!supabase) {
@@ -88,6 +91,25 @@ export default function AgentsPage() {
 
     loadData();
   }, [router]);
+
+  const embedSnippet = (id: string) => `<script src="https://agentify.ch/api/widget/${id}"></script>`;
+
+  const handleCopy = async (agentId: string) => {
+    const clipboard = typeof navigator !== "undefined" ? navigator.clipboard : null;
+    if (!clipboard) {
+      toast({ title: "Clipboard nicht verfügbar", description: "Bitte kopiere den Code manuell.", variant: "warning" });
+      return;
+    }
+    try {
+      await clipboard.writeText(embedSnippet(agentId));
+      setCopiedAgentId(agentId);
+      toast({ title: "Embed kopiert", description: "Widget-Snippet wurde in die Zwischenablage kopiert.", variant: "success" });
+      setTimeout(() => setCopiedAgentId(null), 2500);
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Fehler", description: "Kopieren war nicht möglich.", variant: "error" });
+    }
+  };
 
   const hasAgents = agents.length > 0;
 
@@ -153,6 +175,17 @@ export default function AgentsPage() {
                     <Button variant="ghost" size="sm">
                       Löschen
                     </Button>
+                  </div>
+                  <div className="rounded-2xl border border-white/[0.08] bg-[#0a0a15]/70 p-3 text-xs font-mono text-white/70">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="uppercase tracking-[0.4em] text-[10px] text-white/50">Widget Embed</span>
+                      <Button variant="ghost" size="sm" onClick={() => handleCopy(agent.id)}>
+                        {copiedAgentId === agent.id ? "Kopiert" : "Kopieren"}
+                      </Button>
+                    </div>
+                    <code className="mt-2 block break-words text-[11px] text-white/70">
+                      {embedSnippet(agent.id)}
+                    </code>
                   </div>
                 </Card>
               ))}
