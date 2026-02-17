@@ -10,6 +10,12 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        surface: '#05050a',
+        card: '#12121c',
+        border: 'rgba(255, 255, 255, 0.08)',
+        accent: '#ff3b30',
+        accentStrong: '#c11b21',
+        muted: '#cbd5f5',
         // Swiss-inspired color palette
         primary: {
           50: '#fef2f2',

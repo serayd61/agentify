@@ -6,20 +6,20 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold tracking-wide transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8b5cf6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#030308] disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold tracking-wide transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff3b30] focus-visible:ring-offset-2 focus-visible:ring-offset-[#05050a] disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
         default:
-          "bg-gradient-to-r from-[#8b5cf6] via-[#6366f1] to-[#3b82f6] text-white rounded-xl shadow-[0_4px_20px_-5px_rgba(139,92,246,0.5),inset_0_1px_0_rgba(255,255,255,0.15)] hover:shadow-[0_8px_30px_-5px_rgba(139,92,246,0.6),inset_0_1px_0_rgba(255,255,255,0.15)] hover:-translate-y-0.5 active:translate-y-0",
+          "bg-gradient-to-r from-[#ff6b53] via-[#ff3b30] to-[#c11b21] text-white rounded-xl shadow-[0_10px_30px_-10px_rgba(255,59,48,0.7),inset_0_1px_0_rgba(255,255,255,0.15)] hover:shadow-[0_15px_30px_-10px_rgba(255,59,48,0.6),inset_0_1px_0_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0",
         secondary:
-          "bg-[#0f0f1a] text-white border border-white/10 rounded-xl hover:bg-[#16162a] hover:border-white/20",
+          "bg-[#12121c] text-white border border-white/10 rounded-xl hover:bg-[#1a1a27] hover:border-white/20",
         outline:
-          "border border-white/15 bg-transparent text-white rounded-xl hover:bg-white/5 hover:border-[#8b5cf6]/50",
+          "border border-white/15 bg-transparent text-white rounded-xl hover:bg-white/5 hover:border-white/40",
         ghost: 
           "text-white/70 hover:text-white hover:bg-white/5 rounded-lg",
         link: 
-          "text-[#8b5cf6] underline-offset-4 hover:underline",
+          "text-[#ff3b30] underline-offset-4 hover:underline",
         destructive:
           "bg-red-600 text-white rounded-xl hover:bg-red-700",
       },
