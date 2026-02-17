@@ -381,3 +381,355 @@ INSERT INTO categories (slug, name_de, icon, sort_order) VALUES
   ('handel', 'Handel & Retail', '🛒', 8),
   ('bildung', 'Bildung & Kurse', '📚', 9)
 ON CONFLICT (slug) DO NOTHING;
+-- ========================================
+-- SECTORS (Sektoren für Branchenpakete)
+-- ========================================
+CREATE TABLE IF NOT EXISTS sectors (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  slug VARCHAR(50) UNIQUE NOT NULL,
+  name_de VARCHAR(100) NOT NULL,
+  name_en VARCHAR(100),
+  icon VARCHAR(50),
+  description_de TEXT,
+  description_en TEXT,
+  is_active BOOLEAN DEFAULT true,
+  sort_order INTEGER DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+INSERT INTO sectors (slug, name_de, icon, sort_order) VALUES
+  ('treuhand', 'Treuhand & Buchhaltung', '📊', 1),
+  ('handwerk', 'Handwerk & Gewerbe', '🔧', 2),
+  ('gastronomie', 'Gastronomie & Hotellerie', '🍽️', 3),
+  ('gesundheit', 'Gesundheit & Praxen', '🏥', 4),
+  ('immobilien', 'Immobilien & Verwaltung', '🏠', 5),
+  ('rechtsberatung', 'Rechtsberatung & Kanzleien', '⚖️', 6)
+ON CONFLICT (slug) DO NOTHING;
+
+-- ========================================
+-- PACKAGES (Sektör bazlı planlar)
+-- ========================================
+CREATE TABLE IF NOT EXISTS packages (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  sector_id UUID REFERENCES sectors(id) ON DELETE CASCADE,
+  tier VARCHAR(20) NOT NULL CHECK (tier IN ('starter', 'business', 'enterprise')),
+  name_de VARCHAR(100) NOT NULL,
+  price_monthly INTEGER NOT NULL,
+  price_yearly INTEGER,
+  messages_per_month INTEGER NOT NULL,
+  assistants_count INTEGER NOT NULL,
+  is_popular BOOLEAN DEFAULT false,
+  stripe_price_id_monthly VARCHAR(100),
+  stripe_price_id_yearly VARCHAR(100),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE (sector_id, tier)
+);
+
+-- ========================================
+-- PACKAGE FEATURES
+-- ========================================
+CREATE TABLE IF NOT EXISTS package_features (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  package_id UUID REFERENCES packages(id) ON DELETE CASCADE,
+  feature_key VARCHAR(100) NOT NULL,
+  feature_name_de VARCHAR(200) NOT NULL,
+  feature_name_en VARCHAR(200),
+  is_included BOOLEAN DEFAULT false,
+  is_highlighted BOOLEAN DEFAULT false,
+  sort_order INTEGER DEFAULT 0
+);
+
+-- ========================================
+-- AGENTS & CONTENT (Gerekli ek tablolar zaten var)
+-- ========================================
+CREATE TABLE IF NOT EXISTS agents (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
+  sector_id UUID REFERENCES sectors(id),
+  package_id UUID REFERENCES packages(id),
+  name VARCHAR(100) NOT NULL,
+  status VARCHAR(20) DEFAULT 'draft' CHECK (status IN ('draft', 'active', 'paused', 'cancelled')),
+  config JSONB DEFAULT '{}',
+  widget_settings JSONB DEFAULT '{}',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS agent_content (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  agent_id UUID REFERENCES agents(id) ON DELETE CASCADE,
+  content_type VARCHAR(50) NOT NULL,
+  content_key VARCHAR(100) NOT NULL,
+  content_value_de TEXT,
+  content_value_en TEXT,
+  sort_order INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE (agent_id, content_type, content_key)
+);
+
+-- ========================================
+-- SECTOR PACKAGES
+-- ========================================
+-- Helper to insert per sector packages
+
+INSERT INTO packages (sector_id, tier, name_de, price_monthly, price_yearly, messages_per_month, assistants_count, is_popular)
+VALUES
+((SELECT id FROM sectors WHERE slug = 'treuhand'), 'starter', 'Starter', 249, 2490, 2000, 1, false),
+((SELECT id FROM sectors WHERE slug = 'treuhand'), 'business', 'Business', 499, 4990, 8000, 3, true),
+((SELECT id FROM sectors WHERE slug = 'treuhand'), 'enterprise', 'Enterprise', 999, 9990, 30000, -1, false)
+ON CONFLICT (sector_id, tier) DO NOTHING;
+
+INSERT INTO packages (sector_id, tier, name_de, price_monthly, price_yearly, messages_per_month, assistants_count, is_popular)
+VALUES
+((SELECT id FROM sectors WHERE slug = 'handwerk'), 'starter', 'Starter', 199, 1990, 2500, 1, false),
+((SELECT id FROM sectors WHERE slug = 'handwerk'), 'business', 'Business', 399, 3990, 10000, 3, true),
+((SELECT id FROM sectors WHERE slug = 'handwerk'), 'enterprise', 'Enterprise', 799, 7990, 40000, -1, false)
+ON CONFLICT (sector_id, tier) DO NOTHING;
+
+INSERT INTO packages (sector_id, tier, name_de, price_monthly, price_yearly, messages_per_month, assistants_count, is_popular)
+VALUES
+((SELECT id FROM sectors WHERE slug = 'gastronomie'), 'starter', 'Starter', 149, 1490, 3000, 1, false),
+((SELECT id FROM sectors WHERE slug = 'gastronomie'), 'business', 'Business', 299, 2990, 12000, 2, true),
+((SELECT id FROM sectors WHERE slug = 'gastronomie'), 'enterprise', 'Enterprise', 599, 5990, 50000, -1, false)
+ON CONFLICT (sector_id, tier) DO NOTHING;
+
+INSERT INTO packages (sector_id, tier, name_de, price_monthly, price_yearly, messages_per_month, assistants_count, is_popular)
+VALUES
+((SELECT id FROM sectors WHERE slug = 'gesundheit'), 'starter', 'Starter', 299, 2990, 1500, 1, false),
+((SELECT id FROM sectors WHERE slug = 'gesundheit'), 'business', 'Business', 599, 5990, 6000, 3, true),
+((SELECT id FROM sectors WHERE slug = 'gesundheit'), 'enterprise', 'Enterprise', 1199, 11990, 25000, -1, false)
+ON CONFLICT (sector_id, tier) DO NOTHING;
+
+INSERT INTO packages (sector_id, tier, name_de, price_monthly, price_yearly, messages_per_month, assistants_count, is_popular)
+VALUES
+((SELECT id FROM sectors WHERE slug = 'immobilien'), 'starter', 'Starter', 249, 2490, 2000, 1, false),
+((SELECT id FROM sectors WHERE slug = 'immobilien'), 'business', 'Business', 499, 4990, 8000, 3, true),
+((SELECT id FROM sectors WHERE slug = 'immobilien'), 'enterprise', 'Enterprise', 999, 9990, 35000, -1, false)
+ON CONFLICT (sector_id, tier) DO NOTHING;
+
+INSERT INTO packages (sector_id, tier, name_de, price_monthly, price_yearly, messages_per_month, assistants_count, is_popular)
+VALUES
+((SELECT id FROM sectors WHERE slug = 'rechtsberatung'), 'starter', 'Starter', 299, 2990, 1000, 1, false),
+((SELECT id FROM sectors WHERE slug = 'rechtsberatung'), 'business', 'Business', 599, 5990, 4000, 2, true),
+((SELECT id FROM sectors WHERE slug = 'rechtsberatung'), 'enterprise', 'Enterprise', 1199, 11990, 15000, -1, false)
+ON CONFLICT (sector_id, tier) DO NOTHING;
+
+-- ========================================
+-- PACKAGE FEATURES
+-- ========================================
+-- Treuhand features per tier
+INSERT INTO package_features (package_id, feature_key, feature_name_de, is_included, is_highlighted, sort_order)
+SELECT p.id, f.feature_key, f.feature_name_de, f.is_included, COALESCE(f.is_highlighted, false), f.sort_order
+FROM packages p CROSS JOIN (
+  VALUES
+    ('faq', 'FAQ-Antworten', true, false, 1),
+    ('appointment', 'Terminbuchung', false, false, 2),
+    ('bexio', 'Bexio-Integration', false, false, 3),
+    ('document', 'Dokumenten-Upload', false, false, 4),
+    ('portal', 'Kundenportal', false, false, 5),
+    ('whatsapp', 'WhatsApp-Integration', false, false, 6),
+    ('priority_support', 'Priority Support', false, false, 7)
+) AS f(feature_key, feature_name_de, is_included, is_highlighted, sort_order)
+WHERE p.sector_id = (SELECT id FROM sectors WHERE slug = 'treuhand')
+  AND p.tier = 'starter'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO package_features (package_id, feature_key, feature_name_de, is_included, is_highlighted, sort_order)
+SELECT p.id, f.feature_key, f.feature_name_de, f.is_included, f.is_highlighted, f.sort_order
+FROM packages p CROSS JOIN (
+  VALUES
+    ('faq', 'FAQ-Antworten', true, false, 1),
+    ('appointment', 'Terminbuchung', true, true, 2),
+    ('bexio', 'Bexio-Integration', true, true, 3),
+    ('document', 'Dokumenten-Upload', false, false, 4),
+    ('portal', 'Kundenportal', false, false, 5),
+    ('whatsapp', 'WhatsApp-Integration', true, true, 6),
+    ('priority_support', 'Priority Support', true, false, 7)
+) AS f(feature_key, feature_name_de, is_included, is_highlighted, sort_order)
+WHERE p.sector_id = (SELECT id FROM sectors WHERE slug = 'treuhand')
+  AND p.tier = 'business'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO package_features (package_id, feature_key, feature_name_de, is_included, is_highlighted, sort_order)
+SELECT p.id, f.feature_key, f.feature_name_de, true, COALESCE(f.is_highlighted, false), f.sort_order
+FROM packages p CROSS JOIN (
+  VALUES
+    ('faq', 'FAQ-Antworten', false, 1),
+    ('appointment', 'Terminbuchung', false, 2),
+    ('bexio', 'Bexio-Integration', false, 3),
+    ('document', 'Dokumenten-Upload', true, 4),
+    ('portal', 'Kundenportal', true, 5),
+    ('whatsapp', 'WhatsApp-Integration', false, 6),
+    ('priority_support', 'Dedicated Support', true, 7),
+    ('api', 'API-Zugang', true, 8),
+    ('custom', 'Custom Integrationen', true, 9)
+) AS f(feature_key, feature_name_de, is_highlighted, sort_order)
+WHERE p.sector_id = (SELECT id FROM sectors WHERE slug = 'treuhand')
+  AND p.tier = 'enterprise'
+ON CONFLICT DO NOTHING;
+
+-- Placeholder for other sectors: similar inserts adapt features per sector.
+-- Handwerk features
+INSERT INTO package_features (package_id, feature_key, feature_name_de, is_included, sort_order)
+SELECT p.id, f.feature_key, f.feature_name_de, f.is_included, f.sort_order
+FROM packages p CROSS JOIN (
+  VALUES
+    ('faq', 'FAQ-Antworten', true, 1),
+    ('appointment', 'Terminbuchung', true, 2),
+    ('emergency_routing', 'Notfall-Routing', false, 3),
+    ('whatsapp', 'WhatsApp-Integration', true, 4),
+    ('photo_upload', 'Foto-Upload', false, 5),
+    ('gps_location', 'GPS-Ortung', false, 6),
+    ('priority_support', 'Priority Support', false, 7)
+) AS f(feature_key, feature_name_de, is_included, sort_order)
+WHERE p.sector_id = (SELECT id FROM sectors WHERE slug = 'handwerk') AND p.tier = 'starter'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO package_features (package_id, feature_key, feature_name_de, is_included, sort_order)
+SELECT p.id, f.feature_key, f.feature_name_de, true, f.sort_order
+FROM packages p CROSS JOIN (
+  VALUES
+    ('faq', 'FAQ-Antworten', 1),
+    ('appointment', 'Terminbuchung', 2),
+    ('emergency_routing', 'Notfall-Routing', 3),
+    ('whatsapp', 'WhatsApp-Integration', 4),
+    ('photo_upload', 'Foto-Upload', 5),
+    ('gps_location', 'GPS-Ortung', 6),
+    ('priority_support', 'Priority Support', 7)
+) AS f(feature_key, feature_name_de, sort_order)
+WHERE p.sector_id = (SELECT id FROM sectors WHERE slug = 'handwerk') AND p.tier = 'business'
+ON CONFLICT DO NOTHING;
+
+-- Gastronomie
+INSERT INTO package_features (package_id, feature_key, feature_name_de, is_included, sort_order)
+SELECT p.id, f.feature_key, f.feature_name_de, f.is_included, f.sort_order
+FROM packages p CROSS JOIN (
+  VALUES
+    ('menu_info', 'Menü-Infos', true, 1),
+    ('reservation', 'Reservationssystem', true, 2),
+    ('dietary_filter', 'Ernährungsfilter', false, 3),
+    ('whatsapp_order', 'WhatsApp-Bestellungen', false, 4),
+    ('event_management', 'Event-Management', false, 5),
+    ('priority_support', 'Priority Support', false, 6)
+) AS f(feature_key, feature_name_de, is_included, sort_order)
+WHERE p.sector_id = (SELECT id FROM sectors WHERE slug = 'gastronomie') AND p.tier = 'starter'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO package_features (package_id, feature_key, feature_name_de, is_included, sort_order)
+SELECT p.id, f.feature_key, f.feature_name_de, true, f.sort_order
+FROM packages p CROSS JOIN (
+  VALUES
+    ('menu_info', 'Menü-Infos', 1),
+    ('reservation', 'Reservationssystem', 2),
+    ('dietary_filter', 'Ernährungsfilter', 3),
+    ('whatsapp_order', 'WhatsApp-Bestellungen', 4),
+    ('event_management', 'Event-Management', 5),
+    ('priority_support', 'Priority Support', 6)
+) AS f(feature_key, feature_name_de, sort_order)
+WHERE p.sector_id = (SELECT id FROM sectors WHERE slug = 'gastronomie') AND p.tier = 'business'
+ON CONFLICT DO NOTHING;
+
+-- Gesundheit
+INSERT INTO package_features (package_id, feature_key, feature_name_de, is_included, sort_order)
+SELECT p.id, f.feature_key, f.feature_name_de, f.is_included, f.sort_order
+FROM packages p CROSS JOIN (
+  VALUES
+    ('faq', 'FAQ-Antworten', true, 1),
+    ('appointment', 'Terminbuchung', true, 2),
+    ('insurance_check', 'Versicherungscheck', false, 3),
+    ('emergency_routing', 'Notfall-Routing', false, 4),
+    ('prescription_reminder', 'Rezept-Erinnerung', false, 5),
+    ('patient_portal', 'Patientenportal', false, 6),
+    ('priority_support', 'Priority Support', false, 7)
+) AS f(feature_key, feature_name_de, is_included, sort_order)
+WHERE p.sector_id = (SELECT id FROM sectors WHERE slug = 'gesundheit') AND p.tier = 'starter'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO package_features (package_id, feature_key, feature_name_de, is_included, sort_order)
+SELECT p.id, f.feature_key, f.feature_name_de, true, f.sort_order
+FROM packages p CROSS JOIN (
+  VALUES
+    ('faq', 'FAQ-Antworten', 1),
+    ('appointment', 'Terminbuchung', 2),
+    ('insurance_check', 'Versicherungscheck', 3),
+    ('emergency_routing', 'Notfall-Routing', 4),
+    ('prescription_reminder', 'Rezept-Erinnerung', 5),
+    ('patient_portal', 'Patientenportal', 6),
+    ('priority_support', 'Priority Support', 7)
+) AS f(feature_key, feature_name_de, sort_order)
+WHERE p.sector_id = (SELECT id FROM sectors WHERE slug = 'gesundheit') AND p.tier = 'business'
+ON CONFLICT DO NOTHING;
+
+-- Immobilien
+INSERT INTO package_features (package_id, feature_key, feature_name_de, is_included, sort_order)
+SELECT p.id, f.feature_key, f.feature_name_de, f.is_included, f.sort_order
+FROM packages p CROSS JOIN (
+  VALUES
+    ('property_info', 'Immobilien-Info', true, 1),
+    ('viewing_appointment', 'Besichtigungstermine', true, 2),
+    ('virtual_tour', 'Virtuelle Tour', false, 3),
+    ('lead_capture', 'Lead-Erfassung', false, 4),
+    ('crm_integration', 'CRM-Integration', false, 5),
+    ('priority_support', 'Priority Support', false, 6)
+) AS f(feature_key, feature_name_de, is_included, sort_order)
+WHERE p.sector_id = (SELECT id FROM sectors WHERE slug = 'immobilien') AND p.tier = 'starter'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO package_features (package_id, feature_key, feature_name_de, is_included, sort_order)
+SELECT p.id, f.feature_key, f.feature_name_de, true, f.sort_order
+FROM packages p CROSS JOIN (
+  VALUES
+    ('property_info', 'Immobilien-Info', 1),
+    ('viewing_appointment', 'Besichtigungstermine', 2),
+    ('virtual_tour', 'Virtuelle Tour', 3),
+    ('lead_capture', 'Lead-Erfassung', 4),
+    ('crm_integration', 'CRM-Integration', 5),
+    ('priority_support', 'Priority Support', 6)
+) AS f(feature_key, feature_name_de, sort_order)
+WHERE p.sector_id = (SELECT id FROM sectors WHERE slug = 'immobilien') AND p.tier = 'business'
+ON CONFLICT DO NOTHING;
+
+-- Rechtsberatung
+INSERT INTO package_features (package_id, feature_key, feature_name_de, is_included, sort_order)
+SELECT p.id, f.feature_key, f.feature_name_de, f.is_included, f.sort_order
+FROM packages p CROSS JOIN (
+  VALUES
+    ('expertise_info', 'Expertise-Info', true, 1),
+    ('consultation_booking', 'Beratung buchen', true, 2),
+    ('document_review', 'Dokumentenprüfung', false, 3),
+    ('privacy_mode', 'Privacy-Modus', false, 4),
+    ('case_portal', 'Mandantenportal', false, 5),
+    ('priority_support', 'Priority Support', false, 6)
+) AS f(feature_key, feature_name_de, is_included, sort_order)
+WHERE p.sector_id = (SELECT id FROM sectors WHERE slug = 'rechtsberatung') AND p.tier = 'starter'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO package_features (package_id, feature_key, feature_name_de, is_included, sort_order)
+SELECT p.id, f.feature_key, f.feature_name_de, true, f.sort_order
+FROM packages p CROSS JOIN (
+  VALUES
+    ('expertise_info', 'Expertise-Info', 1),
+    ('consultation_booking', 'Beratung buchen', 2),
+    ('document_review', 'Dokumentenprüfung', 3),
+    ('privacy_mode', 'Privacy-Modus', 4),
+    ('case_portal', 'Mandantenportal', 5),
+    ('priority_support', 'Priority Support', 6)
+) AS f(feature_key, feature_name_de, sort_order)
+WHERE p.sector_id = (SELECT id FROM sectors WHERE slug = 'rechtsberatung') AND p.tier = 'business'
+ON CONFLICT DO NOTHING;
+-- ========================================
+-- RLS FOR SECTORS AND PACKAGES
+-- ========================================
+ALTER TABLE sectors ENABLE ROW LEVEL SECURITY;
+ALTER TABLE packages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE package_features ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public sectors" ON sectors
+  FOR SELECT USING (is_active);
+
+CREATE POLICY "Users can read packages" ON packages
+  FOR SELECT USING (true);
+
+CREATE POLICY "Users can read package features" ON package_features
+  FOR SELECT USING (true);
