@@ -122,7 +122,7 @@ function LoginForm() {
 
   return (
     <div className="min-h-screen bg-[#05050a] flex items-center justify-center px-4 py-12">
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute-bg">
         <div className="absolute -left-20 top-16 w-[420px] h-[420px] bg-[#ff3b30]/20 blur-[160px]" />
         <div className="absolute right-0 top-1/4 w-[360px] h-[360px] bg-[#05050a]/70 border border-white/[0.05] rounded-[200px] blur-[110px]" />
       </div>

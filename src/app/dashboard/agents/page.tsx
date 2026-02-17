@@ -220,7 +220,7 @@ export default function AgentsPage() {
             </div>
           </div>
 
-          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 grid-container">
             {statsData.map((stat) => (
               <motion.div
                 key={stat.label}
@@ -258,7 +258,7 @@ export default function AgentsPage() {
             </motion.div>
           )}
 
-          <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3 grid-container">
             {agents.map((agent, index) => (
               <motion.div
                 key={agent.id}

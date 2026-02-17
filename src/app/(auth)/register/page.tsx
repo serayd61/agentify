@@ -145,7 +145,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-[#05050a] flex items-stretch">
-      <div className="absolute inset-0 pointer-events-none">
+      <div className="absolute-bg">
         <div className="absolute -left-16 top-10 w-[420px] h-[420px] bg-[#ff3b30]/20 blur-[150px]" />
         <div className="absolute right-0 bottom-0 w-[360px] h-[360px] bg-[#05050a]/60 border border-white/[0.05] rounded-[200px] blur-[110px]" />
       </div>
