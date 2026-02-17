@@ -68,6 +68,12 @@ export default function RegisterPage() {
     setIsLoading(true);
     setError(null);
 
+    if (!supabaseReady) {
+      setError("Supabase ist derzeit nicht konfiguriert.");
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const supabase = getSupabaseBrowser();
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
@@ -91,15 +97,27 @@ export default function RegisterPage() {
       }
 
       if (signUpData?.user?.id) {
-        await supabase.from("customers").upsert({
-          auth_user_id: signUpData.user.id,
-          email: formData.email,
-          company_name: formData.companyName,
-        }, { onConflict: "auth_user_id" });
+        const { error: upsertError } = await supabase
+          .from("customers")
+          .upsert(
+            {
+              auth_user_id: signUpData.user.id,
+              email: formData.email,
+              company_name: formData.companyName,
+            },
+            { onConflict: "auth_user_id" }
+          );
+
+        if (upsertError) {
+          console.error("Customer upsert failed", upsertError);
+          setError("Kundendaten konnten nicht gespeichert werden. Bitte versuchen Sie es später erneut.");
+          return;
+        }
       }
 
       setSuccess(true);
-    } catch {
+    } catch (error) {
+      console.error("Registration failed", error);
       setError("Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.");
     } finally {
       setIsLoading(false);

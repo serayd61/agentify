@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, Suspense, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -348,15 +348,36 @@ function LoginForm() {
 }
 
 export default function LoginPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-[#05050a] flex items-center justify-center">
-          <div className="w-10 h-10 border-2 border-white/20 border-t-[#ff3b30] rounded-full animate-spin" />
-        </div>
+  const [authLoading, setAuthLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    let mounted = true;
+    const verifyAuth = async () => {
+      try {
+        const supabase = getSupabaseBrowser();
+        await supabase.auth.getSession();
+      } catch (error) {
+        console.error("Login auth check failed", error);
+      } finally {
+        if (mounted) {
+          setAuthLoading(false);
+        }
       }
-    >
-      <LoginForm />
-    </Suspense>
-  );
+    };
+
+    verifyAuth();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#05050a] flex items-center justify-center">
+        <div className="w-10 h-10 border-2 border-white/20 border-t-[#ff3b30] rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return <LoginForm />;
 }
