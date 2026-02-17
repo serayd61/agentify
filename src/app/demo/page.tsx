@@ -2,257 +2,202 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { Sparkles, ArrowRight } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import {
-  Bot,
-  Send,
-  User,
-  ArrowRight,
-  Sparkles,
-} from "lucide-react";
+import AIChatWidget from "@/components/demo/AIChatWidget";
 
-// Demo Agent Types
-type DemoAgent = {
-  id: string;
-  name: string;
-  icon: string;
-  color: string;
-  description: string;
-  greeting: string;
-  quickQuestions: string[];
-};
-
-const demoAgents: DemoAgent[] = [
+const sectors = [
   {
-    id: "treuhand-agent",
-    name: "Treuhand-Assistent",
-    icon: "📊",
-    color: "#dc2626",
-    description: "Für Treuhandbüros: MWST, Steuern, Buchhaltung",
-    greeting: "Grüezi! Ich bin der Treuhand-Assistent. Wie kann ich Ihnen bei Steuern, MWST oder Buchhaltung helfen?",
-    quickQuestions: ["MWST-Sätze?", "Termin buchen", "Steuererklärung"],
+    id: "treuhand",
+    name: "Treuhand & Finanzen",
+    description: "Automatisieren Sie Buchhaltung, Abgaben und Fristen mit einem digitalen Assistenten, der Ihre Zahlen versteht.",
+    badge: "Präzision",
+    stats: ["MWST-Vorbereitung", "Lohnabrechnung", "Digitaler Beleg-Upload"],
   },
   {
-    id: "gesundheit-agent",
-    name: "Praxis-Assistent",
-    icon: "🏥",
-    color: "#10b981",
-    description: "Für Arztpraxen: Termine, Öffnungszeiten, Notfall",
-    greeting: "Grüezi! Ich bin der Praxis-Assistent. Wie kann ich Ihnen helfen? Terminbuchung, Öffnungszeiten oder allgemeine Fragen?",
-    quickQuestions: ["Termin buchen", "Öffnungszeiten", "Notfall"],
+    id: "handwerk",
+    name: "Handwerk & Technik",
+    description: "Koordinieren Sie Notfälle, Einsatzplanung und Rechnungstellung direkt über den Chat.",
+    badge: "Service",
+    stats: ["Einsatzplanung", "Materialverwaltung", "Techniker-Ruf"],
   },
   {
-    id: "gastro-agent",
-    name: "Restaurant-Assistent",
-    icon: "🍽️",
-    color: "#8b5cf6",
-    description: "Für Restaurants: Reservierung, Speisekarte",
-    greeting: "Grüezi! Willkommen bei unserem Restaurant. Möchten Sie einen Tisch reservieren oder unsere Speisekarte sehen?",
-    quickQuestions: ["Tisch reservieren", "Speisekarte", "Öffnungszeiten"],
+    id: "gastronomie",
+    name: "Gastronomie",
+    description: "Reservierungen, Specials und Personalfragen im Stil eines Concierge-Assistenten lösen.",
+    badge: "Erlebnis",
+    stats: ["Tischreservierung", "Menüberatung", "Kapazitätsmanagement"],
+  },
+  {
+    id: "gesundheit",
+    name: "Praxis & Gesundheit",
+    description: "Terminbuchungen, Rezeptanfragen und Patientenkommunikation sichern Vertrauen.",
+    badge: "Vertrauen",
+    stats: ["Terminverwaltung", "Telemedizin-Support", "Erinnerungen"],
+  },
+  {
+    id: "immobilien",
+    name: "Immobilien",
+    description: "Objektbesichtigungen, Finanzierungsfragen und Interessenten-Nurturing im Chat.",
+    badge: "Transparenz",
+    stats: ["Besichtigungen", "Finanzierung", "Lead-Nurturing"],
+  },
+  {
+    id: "rechtsberatung",
+    name: "Rechtsberatung",
+    description: "Klare Antworten zu Verträgen, Fristen und Beratungslebnissen für Mandanten.",
+    badge: "Sicherheit",
+    stats: ["Verträge", "Erstberatung", "Fristmanagement"],
   },
 ];
 
-// Live Demo Chat Component
-function LiveDemoChat({ agent, isActive }: { agent: DemoAgent; isActive: boolean }) {
-  const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([
-    { role: "assistant", content: agent.greeting },
-  ]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-
-  const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
-
-    const userMessage = input.trim();
-    setInput("");
-    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
-    setIsLoading(true);
-
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          agentId: agent.id,
-          message: userMessage,
-        }),
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        setMessages((prev) => [...prev, { role: "assistant", content: data.response }]);
-      } else {
-        setMessages((prev) => [...prev, { role: "assistant", content: "Entschuldigung, es gab einen Fehler." }]);
-      }
-    } catch {
-      setMessages((prev) => [...prev, { role: "assistant", content: "Entschuldigung, der Service ist momentan nicht erreichbar." }]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (!isActive) return null;
-
-  return (
-    <div className="bg-[#0a0a12] rounded-2xl border border-white/10 overflow-hidden">
-      {/* Header */}
-      <div className="px-6 py-4 flex items-center gap-4" style={{ backgroundColor: agent.color }}>
-        <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-          <span className="text-2xl">{agent.icon}</span>
-        </div>
-        <div>
-          <h3 className="text-white font-bold text-lg">{agent.name}</h3>
-          <p className="text-white/70 text-sm">Online • Live Demo</p>
-        </div>
-      </div>
-
-      {/* Messages */}
-      <div className="h-[400px] overflow-y-auto p-4 space-y-3">
-        {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`flex items-start gap-3 max-w-[85%] ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                msg.role === "user" ? "bg-white/20" : "bg-white/10"
-              }`}>
-                {msg.role === "user" ? <User className="w-4 h-4 text-white" /> : <Bot className="w-4 h-4 text-white" />}
-              </div>
-              <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
-                msg.role === "user"
-                  ? "text-white rounded-tr-sm"
-                  : "bg-white/5 text-white/90 border border-white/10 rounded-tl-sm"
-              }`} style={msg.role === "user" ? { backgroundColor: agent.color } : {}}>
-                {msg.content}
-              </div>
-            </div>
-          </div>
-        ))}
-        {isLoading && (
-          <div className="flex justify-start">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                <Bot className="w-4 h-4 text-white" />
-              </div>
-              <div className="px-4 py-3 bg-white/5 border border-white/10 rounded-2xl rounded-tl-sm">
-                <div className="flex gap-1.5">
-                  <span className="w-2 h-2 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                  <span className="w-2 h-2 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                  <span className="w-2 h-2 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Quick Questions */}
-      <div className="px-4 pb-3 flex gap-2 flex-wrap">
-        {agent.quickQuestions.map((q) => (
-          <button
-            key={q}
-            onClick={() => setInput(q)}
-            className="px-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm text-white/60 hover:text-white hover:border-white/30 transition-all"
-          >
-            {q}
-          </button>
-        ))}
-      </div>
-
-      {/* Input */}
-      <div className="p-4 border-t border-white/10 flex gap-3">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          placeholder="Nachricht eingeben..."
-          className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-white/30"
-        />
-        <button
-          onClick={sendMessage}
-          disabled={isLoading || !input.trim()}
-          className="px-4 py-3 disabled:opacity-50 rounded-xl transition-colors"
-          style={{ backgroundColor: agent.color }}
-        >
-          <Send className="w-5 h-5 text-white" />
-        </button>
-      </div>
-    </div>
-  );
-}
+const featureShowcase = [
+  {
+    title: "Live-Chat, aber smarter",
+    description: "Alles bleibt in Ihrer Marke: Glasige Panels, Echtzeit-Antworten und Kontext aus Ihren Daten.",
+  },
+  {
+    title: "Custom Prompts",
+    description: "Vorbereitete Fragen, sector-spezifische Wissensdatenbanken und CTA-Aktionen lassen Besucher aktiv werden.",
+  },
+  {
+    title: "Mobile-ready",
+    description: "Glazgo-Animationen und adaptive Layouts sorgen auch auf Smartphones für Wow-Momente.",
+  },
+];
 
 export default function DemoPage() {
-  const [activeAgent, setActiveAgent] = useState(demoAgents[0].id);
+  const [activeSector, setActiveSector] = useState(sectors[0].id);
+  const activeInfo = sectors.find((sector) => sector.id === activeSector) ?? sectors[0];
 
   return (
-    <div className="min-h-screen bg-[#030308] flex flex-col">
+    <div className="min-h-screen bg-[#030308] text-white">
       <Header />
+      <main className="flex-1 pt-24 pb-20">
+        <div className="container max-w-6xl space-y-16">
+          <section className="text-center space-y-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur"
+            >
+              <Sparkles className="w-4 h-4 text-[#ff3b30]" />
+              <span className="text-xs uppercase tracking-[0.4em] text-white/60">Agentify Demo</span>
+            </motion.div>
+            <motion.h1
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-4xl md:text-5xl font-bold"
+            >
+              Die KI erleben, die Schweizer KMU wirklich unterstützt
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-lg text-white/60 max-w-3xl mx-auto"
+            >
+              Wählen Sie einen Branchen-Assistenten und erleben Sie, wie Agentify den ersten Kontakt, Support und Service automatisch übernimmt.
+            </motion.p>
+          </section>
 
-      <main className="flex-1 pt-32 pb-24">
-        <div className="container max-w-6xl">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm mb-6">
-              <Sparkles className="w-4 h-4 text-[#dc2626]" />
-              <span className="text-white/70">Live Demo</span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Testen Sie unsere KI-Assistenten
-            </h1>
-            <p className="text-lg text-white/60 max-w-2xl mx-auto">
-              Wählen Sie einen Branchen-Assistenten und stellen Sie Ihre Fragen.
-              Die Antworten kommen in Echtzeit von unserer KI.
-            </p>
-          </div>
+          <section className="grid gap-10 lg:grid-cols-[360px_1fr]">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="space-y-6"
+            >
+              <div className="rounded-[2rem] border border-white/10 bg-white/5 p-6 backdrop-blur-lg shadow-[0_30px_70px_rgba(0,0,0,0.65)]">
+                <p className="text-xs uppercase tracking-[0.4em] text-white/60">Sektor wählen</p>
+                <h2 className="text-2xl font-semibold mt-2">Branchen, die wir heute zeigen</h2>
+                <p className="text-sm text-white/60 mt-2">Jede Auswahl lädt den Demo-Chat mit sector-spezifischen Antworten.</p>
+              </div>
+              <div className="space-y-3">
+                {sectors.map((sector) => (
+                  <button
+                    key={sector.id}
+                    onClick={() => setActiveSector(sector.id)}
+                    className={`w-full text-left rounded-[1.5rem] border px-5 py-4 transition-all backdrop-blur ${
+                      activeSector === sector.id
+                        ? "border-[#ff3b30] bg-white/5 shadow-[0_15px_40px_rgba(255,59,48,0.25)]"
+                        : "border-white/5 bg-[#05050a] hover:border-white/20"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm uppercase tracking-[0.3em] text-white/50">{sector.badge}</p>
+                      <span className="text-xs text-white/60">Live</span>
+                    </div>
+                    <h3 className="text-lg font-semibold mt-2">{sector.name}</h3>
+                    <p className="text-sm text-white/60 mt-1 leading-relaxed">{sector.description}</p>
+                  </button>
+                ))}
+              </div>
+              <div className="rounded-[2rem] border border-white/10 bg-gradient-to-br from-white/5 to-white/0 p-5 backdrop-blur-lg text-sm text-white/70 space-y-3">
+                <p className="text-white/80 text-xs uppercase tracking-[0.4em]">Live-Insights</p>
+                <ul className="space-y-2">
+                  {activeInfo.stats.map((stat) => (
+                    <li key={stat} className="flex items-center justify-between text-sm">
+                      <span>{stat}</span>
+                      <span className="text-white/40 text-xs">Demo</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button size="sm" variant="ghost" asChild className="text-white/70 hover:text-white">
+                  <Link href="/pricing">Mehr Branchen entdecken <ArrowRight className="w-4 h-4" /></Link>
+                </Button>
+              </div>
+            </motion.div>
 
-          {/* Agent Selector */}
-          <div className="flex flex-wrap justify-center gap-4 mb-8">
-            {demoAgents.map((agent) => (
-              <button
-                key={agent.id}
-                onClick={() => setActiveAgent(agent.id)}
-                className={`flex items-center gap-3 px-6 py-4 rounded-xl border transition-all ${
-                  activeAgent === agent.id
-                    ? "border-white/30 bg-white/5"
-                    : "border-white/10 bg-white/[0.02] hover:border-white/20"
-                }`}
-              >
-                <span className="text-3xl">{agent.icon}</span>
-                <div className="text-left">
-                  <div className="text-white font-semibold">{agent.name}</div>
-                  <div className="text-white/50 text-sm">{agent.description}</div>
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+              <AIChatWidget sector={activeSector} />
+            </motion.div>
+          </section>
+
+          <section className="space-y-6">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center space-y-3"
+            >
+              <p className="text-xs uppercase tracking-[0.4em] text-white/50">Funktionen</p>
+              <h2 className="text-3xl font-semibold">Features, die Besucher begeistern</h2>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="grid gap-5 md:grid-cols-3"
+            >
+              {featureShowcase.map((feature) => (
+                <div
+                  key={feature.title}
+                  className="rounded-[1.5rem] border border-white/10 bg-white/5 p-6 backdrop-blur shadow-[0_20px_45px_rgba(0,0,0,0.5)] h-full"
+                >
+                  <h3 className="text-lg font-semibold text-white">{feature.title}</h3>
+                  <p className="text-sm text-white/60 mt-3 leading-relaxed">{feature.description}</p>
                 </div>
-              </button>
-            ))}
-          </div>
+              ))}
+            </motion.div>
+          </section>
 
-          {/* Active Chat */}
-          <div className="max-w-2xl mx-auto">
-            {demoAgents.map((agent) => (
-              <LiveDemoChat
-                key={agent.id}
-                agent={agent}
-                isActive={activeAgent === agent.id}
-              />
-            ))}
-          </div>
-
-          {/* CTA */}
-          <div className="text-center mt-12">
-            <p className="text-white/50 mb-4">
-              Gefällt Ihnen, was Sie sehen? Erstellen Sie Ihren eigenen Assistenten.
-            </p>
-            <Button size="lg" asChild className="bg-[#dc2626] hover:bg-[#b91c1c]">
-              <Link href="/register">
-                Kostenlos starten
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Link>
-            </Button>
-          </div>
+          <section className="text-center">
+            <div className="rounded-[2rem] border border-white/10 bg-white/5 p-10 backdrop-blur shadow-[0_40px_70px_rgba(0,0,0,0.7)] space-y-5">
+              <p className="text-xs uppercase tracking-[0.4em] text-white/60">Bereit für die eigene AI?</p>
+              <h2 className="text-3xl font-semibold">Starten Sie jetzt mit Agentify.ch</h2>
+              <p className="text-white/60 max-w-2xl mx-auto">
+                Vom ersten Chatkontakt bis zur vollautomatischen Unterstützung – unser Dashboard führt Sie durch jede Anpassung.
+              </p>
+              <Button size="lg" asChild>
+                <Link href="/register" className="flex items-center justify-center gap-2">
+                  Demo abonnieren
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </Button>
+            </div>
+          </section>
         </div>
       </main>
-
       <Footer />
     </div>
   );
