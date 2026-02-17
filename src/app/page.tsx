@@ -29,13 +29,14 @@ const stagger = {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-surface text-white flex flex-col">
       <Header />
 
       {/* ── HERO ── */}
-      <section className="relative pt-28 sm:pt-36 lg:pt-44 pb-20 sm:pb-28 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-gray-50 to-white" />
-        
+      <section className="relative pt-28 sm:pt-36 lg:pt-44 pb-20 sm:pb-28 overflow-hidden bg-gradient-to-b from-[#05050a] to-[#05050a]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,59,48,0.3),_transparent_45%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(255,255,255,0.08),_transparent_50%)]" />
+
         <div className="container relative z-10">
           <motion.div
             initial="hidden"
@@ -45,8 +46,8 @@ export default function HomePage() {
           >
             {/* Badge */}
             <motion.div variants={fadeIn} className="mb-6">
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-50 border border-red-100 text-sm text-red-700 font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-sm text-white/80 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#ff3b30]" />
                 Swiss Made · Ab CHF 199/Mt.
               </span>
             </motion.div>
@@ -54,38 +55,38 @@ export default function HomePage() {
             {/* Headline */}
             <motion.h1
               variants={fadeIn}
-              className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-5 leading-[1.1] tracking-tight"
+              className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-5 leading-[1.1] tracking-tight"
             >
               Ihr KI-Assistent für
               <br />
-              <span className="text-red-600">zufriedene Kunden</span>
+              <span className="text-[#ff3b30]">zufriedene Kunden</span>
             </motion.h1>
 
             {/* One-liner */}
             <motion.p
               variants={fadeIn}
-              className="text-lg sm:text-xl text-gray-500 mb-8 max-w-xl mx-auto leading-relaxed"
+              className="text-lg sm:text-xl text-white/70 mb-8 max-w-xl mx-auto leading-relaxed"
             >
               Kundenanfragen, Termine und Support — automatisiert, rund um die Uhr. In 5 Minuten eingerichtet.
             </motion.p>
 
             {/* CTA */}
             <motion.div variants={fadeIn} className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button size="lg" asChild className="bg-red-600 hover:bg-red-700 text-white rounded-full px-8 h-12">
+              <Button size="lg" variant="default" className="rounded-full px-8 h-12" asChild>
                 <Link href="/register">
                   Kostenlos testen
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" asChild className="rounded-full px-8 h-12 border-gray-200 text-gray-700 hover:bg-gray-50">
+              <Button size="lg" variant="ghost" className="rounded-full px-8 h-12 border border-white/20" asChild>
                 <Link href="/demo">Live Demo ansehen</Link>
               </Button>
             </motion.div>
 
             {/* Trust row */}
-            <motion.div variants={fadeIn} className="flex flex-wrap justify-center gap-6 mt-10 text-sm text-gray-400">
+            <motion.div variants={fadeIn} className="flex flex-wrap justify-center gap-6 mt-10 text-sm text-white/60">
               <span className="flex items-center gap-1.5">
-                <Shield className="w-4 h-4 text-green-500" />
+                <Shield className="w-4 h-4 text-[#34c759]" />
                 Swiss Hosting
               </span>
               <span className="flex items-center gap-1.5">
@@ -107,16 +108,16 @@ export default function HomePage() {
           transition={{ delay: 0.4, duration: 0.7 }}
           className="container relative z-10 mt-16 max-w-4xl"
         >
-          <div className="bg-white rounded-2xl shadow-2xl shadow-gray-200/60 border border-gray-100 overflow-hidden">
+          <div className="rounded-[32px] bg-card border border-white/[0.08] shadow-soft overflow-hidden">
             {/* Browser bar */}
-            <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border-b border-gray-100">
+            <div className="flex items-center gap-2 px-4 py-3 bg-white/10 border-b border-white/10">
               <div className="flex gap-1.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
-                <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
-                <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#ff3b30]" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#ff9f43]" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#34c759]" />
               </div>
               <div className="flex-1 flex justify-center">
-                <div className="px-4 py-1 bg-white rounded-md text-xs text-gray-400 border border-gray-100">
+                <div className="px-4 py-1 bg-white/5 rounded-md text-xs text-white/60 border border-white/5">
                   ihrefirma.ch
                 </div>
               </div>
@@ -124,19 +125,19 @@ export default function HomePage() {
             {/* Chat preview */}
             <div className="p-6 sm:p-8 flex flex-col gap-4">
               <div className="flex gap-3 items-start">
-                <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-sm shrink-0">🤖</div>
-                <div className="bg-gray-50 rounded-2xl rounded-tl-md px-4 py-3 text-sm text-gray-700 max-w-md">
+                <div className="w-8 h-8 rounded-full bg-[#ff3b30]/20 flex items-center justify-center text-sm shrink-0">🤖</div>
+                <div className="bg-white/5 rounded-2xl rounded-tl-md px-4 py-3 text-sm text-white/80 max-w-md">
                   Grüezi! Wie kann ich Ihnen helfen? Ich beantworte Fragen, buche Termine und leite komplexe Anfragen weiter.
                 </div>
               </div>
               <div className="flex gap-3 items-start justify-end">
-                <div className="bg-red-600 rounded-2xl rounded-tr-md px-4 py-3 text-sm text-white max-w-xs">
+                <div className="bg-[#ff3b30] rounded-2xl rounded-tr-md px-4 py-3 text-sm text-white max-w-xs shadow-[0_12px_35px_rgba(255,59,48,0.5)]">
                   Ich möchte einen Beratungstermin buchen.
                 </div>
               </div>
               <div className="flex gap-3 items-start">
-                <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-sm shrink-0">🤖</div>
-                <div className="bg-gray-50 rounded-2xl rounded-tl-md px-4 py-3 text-sm text-gray-700 max-w-md">
+                <div className="w-8 h-8 rounded-full bg-[#ff3b30]/20 flex items-center justify-center text-sm shrink-0">🤖</div>
+                <div className="bg-white/5 rounded-2xl rounded-tl-md px-4 py-3 text-sm text-white/80 max-w-md">
                   Gerne! Passt Ihnen Mittwoch, 14:00 Uhr? Ich habe freie Termine am Mittwoch und Freitag.
                 </div>
               </div>
@@ -201,13 +202,13 @@ export default function HomePage() {
                 <motion.div
                   key={i}
                   variants={fadeIn}
-                  className="p-6 rounded-2xl bg-gray-50 border border-gray-100 hover:shadow-md hover:border-gray-200 transition-all"
+                  className="p-6 rounded-3xl bg-card border border-white/[0.08] shadow-soft transition-all"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center mb-4">
-                    <v.icon className="w-5 h-5 text-red-600" />
+                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center mb-4">
+                    <v.icon className="w-5 h-5 text-[#ff3b30]" />
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-1">{v.title}</h3>
-                  <p className="text-sm text-gray-500">{v.desc}</p>
+                  <h3 className="font-semibold text-white mb-1">{v.title}</h3>
+                  <p className="text-sm text-white/60">{v.desc}</p>
                 </motion.div>
               ))}
             </div>
