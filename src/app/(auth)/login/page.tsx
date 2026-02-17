@@ -134,7 +134,7 @@ function LoginForm() {
       >
         <motion.div
           variants={cardVariant}
-          className="relative px-8 py-10 lg:px-11 lg:py-12 bg-[#05050a]/80 border-r border-white/[0.04]"
+          className="relative px-8 py-10 lg:px-11 lg:py-12 bg-card border-r border-white/[0.04] shadow-soft"
         >
           <div className="space-y-6">
             <div className="inline-flex items-center gap-3 px-4 py-1 rounded-full border border-white/[0.12] text-[10px] font-semibold uppercase tracking-[0.4em] text-white/60">
@@ -183,7 +183,7 @@ function LoginForm() {
 
         <motion.div
           variants={cardVariant}
-          className="px-6 py-8 sm:px-8 sm:py-10"
+          className="px-6 py-8 sm:px-8 sm:py-10 bg-card border border-white/[0.08] shadow-soft rounded-[36px]"
         >
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#ff3b30] to-[#ff754f] flex items-center justify-center">
