@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -22,22 +24,7 @@ interface Package {
   features: string[];
 }
 
-const steps = [
-  "Sektor",
-  "Paket",
-  "Firma",
-  "Inhalt",
-  "Zusammenfassung",
-];
-
-export default function AgentBuilderPage() {
-  const [step, setStep] = useState(0);
-  const [sectors, setSectors] = useState<Sector[]>([]);
-  const [packages, setPackages] = useState<Package[]>([]);
-  const [selectedSector, setSelectedSector] = useState<string | null>(null);
-  const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  type FormData = {
+type FormData = {
   company: string;
   address: string;
   phone: string;
@@ -48,6 +35,24 @@ export default function AgentBuilderPage() {
   instructions: string;
 };
 
+const steps = [
+  "Sektor",
+  "Paket",
+  "Firma",
+  "Inhalt",
+  "Zusammenfassung",
+];
+
+export default function AgentBuilderPage() {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [step, setStep] = useState(0);
+  const [sectors, setSectors] = useState<Sector[]>([]);
+  const [packages, setPackages] = useState<Package[]>([]);
+  const [selectedSector, setSelectedSector] = useState<string | null>(null);
+  const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     company: "",
     address: "",
@@ -103,6 +108,38 @@ export default function AgentBuilderPage() {
   }, [selectedSector]);
 
   const currentPackage = useMemo(() => packages.find((pkg) => pkg.id === selectedPackage), [packages, selectedPackage]);
+
+  const handleCreate = async () => {
+    if (!selectedSector || !selectedPackage) {
+      toast({ title: "Auswahl fehlend", description: "Bitte wählen Sie zunächst Sektor und Paket.", variant: "warning" });
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const mutation = await fetch("/api/agents", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sector_id: selectedSector,
+          package_id: selectedPackage,
+          name: formData.company || "Neuer Agent",
+          formData,
+          content: { services: formData.services, faqs: formData.faqs },
+        }),
+      });
+      const result = await mutation.json();
+      if (!mutation.ok) {
+        toast({ title: "Fehler", description: result.error ?? "Agent konnte nicht erstellt werden.", variant: "error" });
+      } else {
+        router.push("/dashboard/agents");
+      }
+    } catch (error) {
+      console.error(error);
+      toast({ title: "Fehler", description: "Agent konnte nicht gespeichert werden.", variant: "error" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -227,7 +264,9 @@ export default function AgentBuilderPage() {
                 <p>Firma: {formData.company}</p>
                 <p>Paket: {currentPackage?.name_de ?? "—"}</p>
               </div>
-              <Button className="rounded-full" onClick={() => console.log("Submit to Supabase")}>Ajan Oluştur</Button>
+              <Button className="rounded-full" onClick={handleCreate} isLoading={isSubmitting} disabled={isSubmitting}>
+                Ajan Oluştur
+              </Button>
             </Card>
           )}
 
