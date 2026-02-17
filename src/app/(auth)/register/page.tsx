@@ -88,11 +88,8 @@ export default function RegisterPage() {
       });
 
       if (signUpError) {
-        setError(
-          signUpError.message.includes("already registered")
-            ? "Diese E-Mail-Adresse ist bereits registriert."
-            : signUpError.message
-        );
+        console.error("SignUp error:", signUpError);
+        setError(`Auth Error: ${signUpError.message}`);
         return;
       }
 
@@ -109,8 +106,8 @@ export default function RegisterPage() {
           );
 
         if (upsertError) {
-          console.error("Customer upsert failed", upsertError);
-          setError("Kundendaten konnten nicht gespeichert werden. Bitte versuchen Sie es später erneut.");
+          console.error("Upsert error:", upsertError);
+          setError(`DB Error: ${upsertError.message}`);
           return;
         }
       }
