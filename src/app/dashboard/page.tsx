@@ -126,7 +126,7 @@ export default function DashboardPage() {
   ], [activeAgents]);
 
   return (
-    <div className="min-h-screen bg-[#05050a] text-white">
+    <div className="min-h-screen bg-surface text-white">
       <div className="relative z-0">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,59,48,0.35),_transparent_45%)] pointer-events-none" />
         <div className="absolute inset-0 bg-gradient-to-b from-[#05050a] via-[#05050a]/90 to-[#05050a]/95 pointer-events-none" />
@@ -259,7 +259,7 @@ export default function DashboardPage() {
                 {statsData.map((stat) => (
                   <motion.div
                     key={stat.label}
-                    className="rounded-2xl bg-[#12121c] border border-white/[0.08] p-5"
+                    className="rounded-2xl bg-card border border-white/[0.08] p-5 shadow-soft"
                     whileHover={{ y: -4 }}
                   >
                     <div className="flex items-center gap-3 text-sm text-white/50 mb-2">
@@ -271,9 +271,9 @@ export default function DashboardPage() {
                 ))}
               </section>
 
-              <div className="mt-8 grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
+              <div className="mt-8 grid gap-6 lg:grid-cols-[1.3fr_0.7fr] grid-container">
                 <motion.div
-                  className="rounded-3xl bg-[#12121c] border border-white/[0.08] p-6"
+                  className="rounded-[32px] bg-card border border-white/[0.08] p-6 shadow-soft"
                   variants={formVariant}
                   initial="hidden"
                   animate="visible"
@@ -296,7 +296,7 @@ export default function DashboardPage() {
                 </motion.div>
 
                 <motion.div
-                  className="rounded-3xl bg-[#12121c] border border-white/[0.08] p-6 flex flex-col gap-4"
+                  className="rounded-[32px] bg-card border border-white/[0.08] p-6 flex flex-col gap-4 shadow-soft"
                   variants={formVariant}
                   initial="hidden"
                   animate="visible"
