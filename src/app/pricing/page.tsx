@@ -1,536 +1,198 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getSupabaseBrowser } from "@/lib/supabase/client";
-import {
-  Check,
-  X,
-  Zap,
-  ArrowRight,
-  MessageSquare,
-  Users,
-  Shield,
-  Bot,
-  Bell,
-  Workflow,
-  LineChart,
-  Database,
-  Mic,
-  Target,
-  Sparkles,
-  Star,
-  HelpCircle,
-} from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { Loader2 } from "lucide-react";
 
-const tiers = [
-  {
-    id: "starter",
-    name: "Starter",
-    description: "Perfekt für Einzelunternehmer und kleine Betriebe",
-    priceMonthly: 199,
-    priceYearly: 1990,
-    popular: false,
-    color: "#007aff",
-    features: [
-      { name: "1 KI-Assistent", included: true },
-      { name: "2'500 Nachrichten/Monat", included: true },
-      { name: "Website-Widget", included: true },
-      { name: "24/7 verfügbar", included: true },
-      { name: "Eigene FAQ & Antworten", included: true },
-      { name: "E-Mail-Support", included: true },
-      { name: "WhatsApp-Integration", included: false },
-      { name: "Termin-Buchung", included: false },
-      { name: "Bexio Integration", included: false },
-      { name: "Mehrere Assistenten", included: false },
-    ],
-    capabilities: ["Reaktiv", "FAQ"],
-    cta: "Starter wählen",
-  },
-  {
-    id: "business",
-    name: "Business",
-    description: "Für KMU mit mehreren Mitarbeitern",
-    priceMonthly: 399,
-    priceYearly: 3990,
-    popular: true,
-    color: "#ff3b30",
-    features: [
-      { name: "3 KI-Assistenten", included: true },
-      { name: "10'000 Nachrichten/Monat", included: true },
-      { name: "WhatsApp-Integration", included: true, highlight: true },
-      { name: "Online-Terminbuchung", included: true, highlight: true },
-      { name: "Bexio/Abacus Integration", included: true, highlight: true },
-      { name: "Notfall-Weiterleitung", included: true },
-      { name: "Prioritäts-Support", included: true },
-      { name: "Statistiken & Reports", included: true },
-      { name: "Multi-Sprachen (DE/FR/IT/EN)", included: false },
-      { name: "API-Zugang", included: false },
-    ],
-    capabilities: ["Proaktiv", "Autonom", "Memory"],
-    cta: "Business wählen",
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise",
-    description: "Für grössere Unternehmen mit speziellen Anforderungen",
-    priceMonthly: 899,
-    priceYearly: 8990,
-    popular: false,
-    color: "#af52de",
-    features: [
-      { name: "Unbegrenzte Assistenten", included: true },
-      { name: "50'000 Nachrichten/Monat", included: true },
-      { name: "Multi-Sprachen (DE/FR/IT/EN)", included: true, highlight: true },
-      { name: "API-Zugang", included: true, highlight: true },
-      { name: "Custom Integrationen", included: true, highlight: true },
-      { name: "Dedizierter Account Manager", included: true },
-      { name: "SLA 99.9% Uptime", included: true },
-      { name: "On-Premise Option", included: true },
-      { name: "Custom Training", included: true },
-      { name: "White-Label Option", included: true },
-    ],
-    capabilities: ["Multi-Agent", "Predictive", "Enterprise"],
-    cta: "Kontakt aufnehmen",
-  },
-];
+interface Sector {
+  id: string;
+  name_de: string;
+}
 
-const faqs = [
-  {
-    q: "Kann ich jederzeit upgraden oder downgraden?",
-    a: "Ja, Sie können Ihr Abo jederzeit ändern. Beim Upgrade wird der Restbetrag angerechnet, beim Downgrade beginnt der neue Plan ab dem nächsten Abrechnungszeitraum.",
-  },
-  {
-    q: "Was passiert, wenn ich mein Nachrichtenlimit erreiche?",
-    a: "Sie erhalten eine Warnung bei 80% Auslastung. Bei Überschreitung können Sie zusätzliche Nachrichten kaufen oder auf den nächsten Plan upgraden.",
-  },
-  {
-    q: "Gibt es eine Geld-zurück-Garantie?",
-    a: "Ja, alle Pläne kommen mit einer 14-tägigen Geld-zurück-Garantie. Keine Fragen gestellt.",
-  },
-  {
-    q: "Sind meine Daten sicher?",
-    a: "Absolut. Alle Daten werden in der Schweiz gehostet und sind DSG-konform. Wir verwenden modernste Verschlüsselung.",
-  },
-  {
-    q: "Kann ich mehrere Agents haben?",
-    a: "Im Basic-Plan ist 1 Agent enthalten, im Pro-Plan 3 Agents, und im Enterprise-Plan unbegrenzt.",
-  },
-  {
-    q: "Wie funktioniert die Bexio-Integration?",
-    a: "Nach der Aktivierung verbinden Sie Ihren Bexio-Account mit wenigen Klicks. Der Agent kann dann Rechnungen erstellen, Kontakte verwalten und mehr.",
-  },
-];
+interface PackageFeature {
+  feature_name_de: string;
+  is_included: boolean;
+  is_highlighted: boolean;
+}
 
-const capabilityIcons: Record<string, React.ReactNode> = {
-  "Reaktiv": <MessageSquare className="w-3.5 h-3.5" />,
-  "FAQ": <HelpCircle className="w-3.5 h-3.5" />,
-  "Proaktiv": <Bell className="w-3.5 h-3.5" />,
-  "Autonom": <Target className="w-3.5 h-3.5" />,
-  "Memory": <Database className="w-3.5 h-3.5" />,
-  "Multi-Agent": <Workflow className="w-3.5 h-3.5" />,
-  "Predictive": <LineChart className="w-3.5 h-3.5" />,
-  "Multimodal": <Mic className="w-3.5 h-3.5" />,
-  "Enterprise": <Shield className="w-3.5 h-3.5" />,
-};
+interface Package {
+  id: string;
+  tier: string;
+  name_de: string;
+  price_monthly: number;
+  price_yearly: number | null;
+  is_popular: boolean;
+  features: PackageFeature[];
+}
+
+const supabase = createClient();
 
 export default function PricingPage() {
-  const router = useRouter();
+  const [sectors, setSectors] = useState<Sector[]>([]);
+  const [selectedSector, setSelectedSector] = useState<string | null>(null);
+  const [packages, setPackages] = useState<Package[]>([]);
   const [isYearly, setIsYearly] = useState(false);
-  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const handleCheckout = async (planId: string) => {
-    if (planId === 'enterprise') {
-      router.push('/contact');
-      return;
-    }
-
-    setLoadingPlan(planId);
-
-    try {
-      // Check if user is logged in
-      const supabase = getSupabaseBrowser();
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        // Redirect to register with plan info
-        router.push(`/register?plan=${planId}&cycle=${isYearly ? 'yearly' : 'monthly'}`);
+  useEffect(() => {
+    const load = async () => {
+      if (!supabase) {
+        setLoading(false);
         return;
       }
+      const { data } = await supabase
+        .from("sectors")
+        .select("id, name_de")
+        .eq("is_active", true)
+        .order("sort_order");
+      if (data) {
+        setSectors(data);
+        setSelectedSector(data[0]?.id ?? null);
+      }
+      setLoading(false);
+    };
+    load();
+  }, []);
 
-      // Create checkout session
-      const response = await fetch('/api/stripe/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          plan: planId,
-          cycle: isYearly ? 'yearly' : 'monthly',
-        }),
+  useEffect(() => {
+    if (!selectedSector || !supabase) return;
+    const loadPackages = async () => {
+      const { data } = await supabase
+        .from("packages")
+        .select(
+          "id, tier, name_de, price_monthly, price_yearly, is_popular, features:package_features(feature_name_de, is_included, is_highlighted, sort_order)"
+        )
+        .eq("sector_id", selectedSector)
+        .order("price_monthly");
+      if (data) {
+        setPackages(data);
+      }
+    };
+    loadPackages();
+  }, [selectedSector]);
+
+  const featureRows = useMemo(() => {
+    const map = new Map<string, PackageFeature>();
+    packages.forEach((pkg) => {
+      pkg.features.forEach((feature) => {
+        if (!map.has(feature.feature_name_de)) {
+          map.set(feature.feature_name_de, feature);
+        }
       });
+    });
+    return Array.from(map.values()).sort((a, b) => a.feature_name_de.localeCompare(b.feature_name_de));
+  }, [packages]);
 
-      const { url, error } = await response.json();
+  const displayPackages = useMemo(() => packages.slice(0, 3), [packages]);
 
-      if (error) {
-        console.error('Checkout error:', error);
-        return;
-      }
-
-      // Redirect to Stripe Checkout
-      window.location.href = url;
-    } catch (error) {
-      console.error('Checkout error:', error);
-    } finally {
-      setLoadingPlan(null);
-    }
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-surface text-white flex items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-[#ff3b30]" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-surface text-white flex flex-col">
       <Header />
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 relative overflow-hidden bg-gradient-to-b from-[#05050a] to-[#05050a]">
-        {/* Video Background */}
-        <div className="absolute inset-0 z-0">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="auto"
-            className="absolute inset-0 w-full h-full object-cover"
-            style={{ WebkitTransform: 'translateZ(0)' }}
-          >
-            <source src="/videos/swisstechshowcase.mp4" type="video/mp4" />
-          </video>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,59,48,0.25),_transparent_45%)]" />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#05050a]/90" />
-        </div>
-
-        <div className="container relative z-10">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#ff3b30]/10 border border-[#ff3b30]/20 text-[#ff6b5e] text-sm font-medium mb-6">
-              <Sparkles className="w-4 h-4" />
-              Transparente Preise
-            </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 font-[family-name:var(--font-display)]">
-              Wählen Sie Ihren
-              <br />
-              <span className="bg-gradient-to-r from-[#ff3b30] to-[#ff9500] bg-clip-text text-transparent">
-                digitalen Mitarbeiter
-              </span>
-            </h1>
-            <p className="text-lg text-white/50 mb-10">
-              Von reaktiven Chatbots bis hin zu vollautonomen Multi-Agent-Systemen.
-              <br />
-              14 Tage Geld-zurück-Garantie auf alle Pläne.
-            </p>
-
-            {/* Billing Toggle */}
-            <div className="inline-flex items-center gap-4 p-1.5 bg-[#12121c] rounded-full border border-white/[0.08]">
-              <button
-                onClick={() => setIsYearly(false)}
-                className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all ${
-                  !isYearly
-                    ? "bg-gradient-to-r from-[#ff3b30] to-[#ff6b5e] text-white"
-                    : "text-white/50 hover:text-white"
-                }`}
-              >
-                Monatlich
-              </button>
-              <button
-                onClick={() => setIsYearly(true)}
-                className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
-                  isYearly
-                    ? "bg-gradient-to-r from-[#ff3b30] to-[#ff6b5e] text-white"
-                    : "text-white/50 hover:text-white"
-                }`}
-              >
-                Jährlich
-                <span className="px-2 py-0.5 bg-[#34c759]/20 text-[#34c759] text-xs font-semibold rounded-full">
-                  -17%
-                </span>
-              </button>
-            </div>
+      <section className="py-20">
+        <div className="container space-y-8">
+          <div className="flex flex-col gap-4">
+            <p className="text-xs uppercase tracking-[0.4em] text-white/40">Sektor auswählen</p>
+            <select
+              className="w-full max-w-sm rounded-full bg-card border border-white/[0.08] px-4 py-2 text-white"
+              value={selectedSector ?? ""}
+              onChange={(e) => setSelectedSector(e.target.value || null)}
+            >
+              {sectors.map((sector) => (
+                <option key={sector.id} value={sector.id}>
+                  {sector.name_de}
+                </option>
+              ))}
+            </select>
           </div>
 
-          {/* Pricing Cards */}
-          <div className="grid lg:grid-cols-3 gap-8 grid-container max-w-6xl mx-auto">
-            {tiers.map((tier) => (
-              <div key={tier.id} className="relative">
-                {tier.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-[#ff3b30] to-[#ff9500] text-white text-sm font-semibold rounded-full flex items-center gap-2 shadow-lg shadow-[#ff3b30]/30">
-                    <Star className="w-4 h-4 fill-white" />
-                    Beliebteste Wahl
+          <div className="flex items-center gap-3">
+            <span className="text-xs uppercase tracking-[0.4em] text-white/50">Abrechnung</span>
+            <Button
+              variant={isYearly ? "ghost" : "default"}
+              className="rounded-full"
+              onClick={() => setIsYearly(false)}
+            >
+              Monatlich
+            </Button>
+            <Button
+              variant={isYearly ? "default" : "ghost"}
+              className="rounded-full"
+              onClick={() => setIsYearly(true)}
+            >
+              Jährlich
+            </Button>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {displayPackages.map((pkg) => (
+              <Card key={pkg.id} className="space-y-4 bg-card border border-white/[0.08]" hover>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.4em] text-white/40">{pkg.tier}</p>
+                    <h3 className="text-2xl font-bold text-white">{pkg.name_de}</h3>
                   </div>
-                )}
-                
-                <Card 
-                  premium={tier.popular} 
-                  className={`h-full flex flex-col ${tier.popular ? 'pt-8' : ''}`}
-                  style={{ borderColor: tier.popular ? `${tier.color}40` : undefined }}
-                >
-                  {/* Header */}
-                  <div className="mb-8">
-                    <div 
-                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium mb-4"
-                      style={{ 
-                        background: `${tier.color}15`,
-                        border: `1px solid ${tier.color}30`,
-                        color: tier.color
-                      }}
-                    >
-                      <Bot className="w-4 h-4" />
-                      {tier.name}
+                  {pkg.is_popular && (
+                    <span className="px-3 py-1 text-xs font-semibold bg-[#ff3b30]/20 text-[#ff3b30] rounded-full">
+                      Beliebt
+                    </span>
+                  )}
+                </div>
+                <p className="text-4xl font-bold text-white">
+                  CHF {isYearly && pkg.price_yearly ? Math.round(pkg.price_yearly / 12) : pkg.price_monthly}
+                  <span className="text-white/50 text-sm ml-2">/ Monat</span>
+                </p>
+                <div className="space-y-2">
+                  {pkg.features.slice(0, 4).map((feature) => (
+                    <div key={feature.feature_name_de} className="flex items-center gap-2 text-sm text-white/70">
+                      <span
+                        className={`w-3 h-3 rounded-full ${feature.is_included ? "bg-[#34c759]" : "bg-white/20"}`}
+                      />
+                      <span>{feature.feature_name_de}</span>
                     </div>
-                    <p className="text-white/50 text-sm">{tier.description}</p>
-                  </div>
-
-                  {/* Price */}
-                  <div className="mb-8">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-5xl font-bold text-white font-[family-name:var(--font-display)]">
-                        CHF {isYearly ? Math.round(tier.priceYearly / 12) : tier.priceMonthly}
-                      </span>
-                      <span className="text-white/40">/Monat</span>
-                    </div>
-                    {isYearly && (
-                      <p className="text-sm text-white/40 mt-2">
-                        CHF {tier.priceYearly}/Jahr (2 Monate gratis)
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Capabilities Badges */}
-                  <div className="flex flex-wrap gap-2 mb-8">
-                    {tier.capabilities.map((cap) => (
-                      <span 
-                        key={cap}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full"
-                        style={{ 
-                          background: `${tier.color}10`,
-                          border: `1px solid ${tier.color}25`,
-                          color: tier.color
-                        }}
-                      >
-                        {capabilityIcons[cap]}
-                        {cap}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* CTA */}
-                  <Button 
-                    size="lg" 
-                    className="w-full mb-8"
-                    variant={tier.popular ? "default" : "secondary"}
-                    onClick={() => handleCheckout(tier.id)}
-                    isLoading={loadingPlan === tier.id}
-                    disabled={loadingPlan !== null}
-                  >
-                    {tier.cta}
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
-
-                  {/* Features */}
-                  <div className="flex-1">
-                    <div className="text-sm font-medium text-white/60 mb-4">Enthalten:</div>
-                    <ul className="space-y-3">
-                      {tier.features.map((feature, i) => (
-                        <li 
-                          key={i} 
-                          className={`flex items-center gap-3 text-sm ${
-                            feature.included ? 'text-white/70' : 'text-white/30'
-                          }`}
-                        >
-                          {feature.included ? (
-                            <div 
-                              className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
-                              style={{ 
-                                background: feature.highlight ? `${tier.color}20` : 'rgba(52, 199, 89, 0.2)'
-                              }}
-                            >
-                              <Check 
-                                className="w-3 h-3" 
-                                style={{ color: feature.highlight ? tier.color : '#34c759' }}
-                              />
-                            </div>
-                          ) : (
-                            <div className="w-5 h-5 rounded-full bg-white/5 flex items-center justify-center shrink-0">
-                              <X className="w-3 h-3 text-white/20" />
-                            </div>
-                          )}
-                          <span className={feature.highlight ? 'font-medium text-white' : ''}>
-                            {feature.name}
-                          </span>
-                          {feature.highlight && (
-                            <span className="px-1.5 py-0.5 bg-[#ff3b30]/15 text-[#ff3b30] text-[10px] font-semibold rounded">
-                              NEU
-                            </span>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </Card>
-              </div>
-            ))}
-          </div>
-
-          {/* Trust Badges */}
-          <div className="flex flex-wrap items-center justify-center gap-8 mt-16 text-sm text-white/40">
-            <div className="flex items-center gap-2">
-              <Shield className="w-5 h-5 text-[#34c759]" />
-              <span>Swiss Hosting</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Zap className="w-5 h-5 text-[#ff9500]" />
-              <span>5 Min Setup</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-[#007aff]" />
-              <span>200+ Schweizer KMU</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Feature Comparison Table */}
-      <section className="py-20 relative">
-        <div className="container">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 font-[family-name:var(--font-display)]">
-              Detaillierter Vergleich
-            </h2>
-            <p className="text-white/50">
-              Alle Funktionen im Überblick
-            </p>
-          </div>
-
-          <div className="max-w-5xl mx-auto overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-white/[0.06]">
-                  <th className="text-left py-4 px-4 text-white/60 font-medium">Funktion</th>
-                  {tiers.map((tier) => (
-                    <th key={tier.id} className="text-center py-4 px-4">
-                      <span 
-                        className="font-bold text-lg"
-                        style={{ color: tier.color }}
-                      >
-                        {tier.name}
-                      </span>
-                    </th>
                   ))}
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { name: "Nachrichten/Monat", values: ["2'500", "10'000", "50'000"] },
-                  { name: "Anzahl Assistenten", values: ["1", "3", "Unbegrenzt"] },
-                  { name: "Website-Widget", values: [true, true, true] },
-                  { name: "WhatsApp-Integration", values: [false, true, true] },
-                  { name: "Online-Terminbuchung", values: [false, true, true] },
-                  { name: "Notfall-Weiterleitung", values: [false, true, true] },
-                  { name: "Bexio/Abacus Integration", values: [false, true, true] },
-                  { name: "Multi-Sprachen", values: [false, false, true] },
-                  { name: "API-Zugang", values: [false, false, true] },
-                  { name: "Custom Integrationen", values: [false, false, true] },
-                  { name: "SLA", values: ["Best Effort", "99%", "99.9%"] },
-                  { name: "Support", values: ["E-Mail", "Priorität", "Dediziert"] },
-                ].map((row, i) => (
-                  <tr key={i} className="border-b border-white/[0.04] hover:bg-white/[0.02]">
-                    <td className="py-4 px-4 text-white/70">{row.name}</td>
-                    {row.values.map((value, j) => (
-                      <td key={j} className="text-center py-4 px-4">
-                        {typeof value === "boolean" ? (
-                          value ? (
-                            <Check className="w-5 h-5 text-[#34c759] mx-auto" />
-                          ) : (
-                            <X className="w-5 h-5 text-white/20 mx-auto" />
-                          )
-                        ) : (
-                          <span className="text-white/70">{value}</span>
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section className="py-20 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0d0d14] to-transparent" />
-        
-        <div className="container relative">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 font-[family-name:var(--font-display)]">
-              Häufige Fragen
-            </h2>
-            <p className="text-white/50">
-              Alles, was Sie wissen müssen
-            </p>
-          </div>
-
-          <div className="max-w-3xl mx-auto grid gap-4">
-            {faqs.map((faq, i) => (
-              <Card key={i} className="p-6">
-                <h3 className="text-lg font-semibold text-white mb-3 font-[family-name:var(--font-display)]">
-                  {faq.q}
-                </h3>
-                <p className="text-white/60 leading-relaxed">{faq.a}</p>
+                </div>
+                <Button className="w-full rounded-full" variant="default" asChild>
+                  <Link href="/register">Jetzt starten</Link>
+                </Button>
               </Card>
             ))}
           </div>
-        </div>
-      </section>
 
-      {/* CTA Section */}
-      <section className="py-20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#ff3b30] via-[#ff5840] to-[#ff9500]" />
-        <div className="absolute inset-0 swiss-cross opacity-20" />
-        
-        <div className="container relative">
-          <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6 font-[family-name:var(--font-display)]">
-              Noch unsicher?
-            </h2>
-            <p className="text-lg text-white/80 mb-8">
-              Testen Sie jeden Plan 14 Tage kostenlos. Keine Kreditkarte erforderlich.
-              Oder buchen Sie eine persönliche Demo.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button
-                size="lg"
-                className="bg-white text-[#ff3b30] hover:bg-white/90"
-                asChild
-              >
-                <Link href="/register">
-                  Kostenlos starten
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-white/30 text-white hover:bg-white/10"
-                asChild
-              >
-                <Link href="/contact">
-                  Demo buchen
-                </Link>
-              </Button>
+          <Card className="p-6 bg-card border border-white/[0.08]">
+            <h3 className="text-xl font-semibold text-white mb-4">Feature-Vergleich</h3>
+            <div className="grid gap-3">
+              {featureRows.map((feature) => (
+                <div key={feature.feature_name_de} className="flex items-center justify-between border-b border-white/[0.04] py-3">
+                  <span>{feature.feature_name_de}</span>
+                  <div className="flex items-center gap-3">
+                    {displayPackages.map((pkg) => {
+                      const included = pkg.features.some((f) => f.feature_name_de === feature.feature_name_de && f.is_included);
+                      return (
+                        <span
+                          key={`${pkg.id}-${feature.feature_name_de}`}
+                          className={`w-5 h-5 rounded-full ${included ? "bg-[#34c759]" : "bg-white/10"}`}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          </Card>
         </div>
       </section>
 
