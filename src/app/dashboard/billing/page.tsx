@@ -1,54 +1,31 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/toast";
+import { motion } from "framer-motion";
 import {
-  ArrowLeft,
+  Check,
   Download,
   ArrowRight,
-  Check,
-  Calendar,
-  Settings,
+  CreditCard,
 } from "lucide-react";
-import { motion } from "framer-motion";
 
 const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.55 } },
 };
 
-const staggerContainer = {
+const stagger = {
   hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 },
-  },
+  visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
 };
 
-interface Subscription {
-  plan: string;
-  price: number;
-  currency: string;
-  billingCycle: "monthly" | "yearly";
-  status: "active" | "inactive" | "cancelled";
-  nextBillingDate: string;
-  features: string[];
-}
-
-interface Invoice {
-  id: string;
-  date: string;
-  amount: number;
-  status: "paid" | "pending" | "failed";
-  description: string;
-}
-
-const currentSubscription: Subscription = {
+const currentSubscription = {
   plan: "Business",
   price: 399,
   currency: "CHF",
@@ -64,411 +41,233 @@ const currentSubscription: Subscription = {
   ],
 };
 
-const invoices: Invoice[] = [
-  {
-    id: "INV-2025-001",
-    date: "2025-01-10",
-    amount: 399,
-    status: "paid",
-    description: "Business Plan - Monthly",
-  },
-  {
-    id: "INV-2024-012",
-    date: "2024-12-10",
-    amount: 399,
-    status: "paid",
-    description: "Business Plan - Monthly",
-  },
-  {
-    id: "INV-2024-011",
-    date: "2024-11-10",
-    amount: 399,
-    status: "paid",
-    description: "Business Plan - Monthly",
-  },
-  {
-    id: "INV-2024-010",
-    date: "2024-10-10",
-    amount: 399,
-    status: "paid",
-    description: "Business Plan - Monthly",
-  },
+const invoices = [
+  { id: "INV-2025-001", date: "2025-01-10", amount: 399, status: "paid", description: "Business Plan - Monthly" },
+  { id: "INV-2024-012", date: "2024-12-10", amount: 399, status: "paid", description: "Business Plan - Monthly" },
+  { id: "INV-2024-011", date: "2024-11-10", amount: 399, status: "paid", description: "Business Plan - Monthly" },
+  { id: "INV-2024-010", date: "2024-10-10", amount: 399, status: "paid", description: "Business Plan - Monthly" },
 ];
 
 const plans = [
   {
     name: "Starter",
     price: 199,
-    description: "Für kleine Unternehmen",
-    features: [
-      "1 KI-Assistent",
-      "2'500 Nachrichten/Monat",
-      "E-Mail-Support",
-      "Widget für Website",
-    ],
+    description: "Für kleine Teams",
+    highlights: ["1 Agent", "2'500 Nachrichten", "E-Mail Support"],
     popular: false,
   },
   {
     name: "Business",
     price: 399,
     description: "Für wachsende KMU",
-    features: [
-      "3 KI-Assistenten",
-      "10'000 Nachrichten/Monat",
-      "Priority Support",
-      "WhatsApp-Integration",
-      "Eigenes Branding",
-    ],
+    highlights: ["3 Agenten", "WhatsApp", "Priority Support"],
     popular: true,
   },
   {
     name: "Enterprise",
     price: 899,
-    description: "Für grössere Unternehmen",
-    features: [
-      "Unbegrenzte Assistenten",
-      "50'000 Nachrichten/Monat",
-      "Dedicated Support",
-      "API-Zugang",
-      "Custom Integrationen",
-    ],
+    description: "Individuelle Lösungen",
+    highlights: ["Unbegrenzte Agenten", "Custom Integrationen", "Dedicated PM"],
     popular: false,
   },
 ];
 
+const usageStats = [
+  { label: "Nachrichten", value: "3'456", detail: "von 10'000" },
+  { label: "Agenten", value: "2 / 3", detail: "aktiv" },
+  { label: "Verfügbarkeit", value: "98%", detail: "Letzte 30 Tage" },
+];
+
+const paymentMethod = {
+  brand: "Visa",
+  last4: "4242",
+  expiry: "05/26",
+  holder: "Agentify GmbH",
+};
+
 export default function BillingPage() {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<"current" | "plans" | "invoices">("current");
 
-  const handleUpgrade = (planName: string) => {
-    toast({
-      title: "Upgrade gestartet",
-      description: `Sie werden zum ${planName} Plan weitergeleitet.`,
-      variant: "success",
-    });
-  };
-
-  const handleCancelSubscription = () => {
-    if (window.confirm("Sind Sie sicher, dass Sie Ihr Abonnement kündigen möchten?")) {
-      toast({
-        title: "Abonnement gekündigt",
-        description: "Ihr Abonnement wird am Ende des Abrechnungszeitraums beendet.",
-        variant: "success",
-      });
-    }
-  };
+  const handleUpgrade = () =>
+    toast({ title: "Plan wechseln", description: "Wir leiten Sie zum Upgrade weiter.", variant: "success" });
+  const handleCancel = () =>
+    toast({ title: "Abonnement kündigen", description: "Ihre Kündigung wird zum Monatsende aktiv.", variant: "success" });
 
   return (
-    <div className="min-h-screen bg-[#05050a] flex flex-col">
+    <div className="min-h-screen bg-surface text-white flex flex-col">
       <Header />
 
       <motion.main
+        className="flex-1 py-10"
         initial="hidden"
         animate="visible"
-        variants={fadeInUp}
-        className="flex-1 py-12"
+        variants={stagger}
       >
-        <div className="container max-w-4xl">
-          {/* Header */}
-          <div className="mb-8">
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 text-white/50 hover:text-white transition-colors mb-4 text-sm"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Zurück zum Dashboard
-            </Link>
-            <h1 className="text-4xl font-bold text-white mb-2">Abrechnung & Pläne</h1>
-            <p className="text-white/60">Verwalten Sie Ihr Abonnement und sehen Sie Ihre Rechnungen.</p>
-          </div>
+        <div className="container max-w-6xl space-y-10">
+          <motion.section
+            variants={fadeInUp}
+            className="rounded-[32px] bg-card border border-white/[0.08] p-8 shadow-soft space-y-6"
+          >
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.4em] text-white/40">Abrechnung</p>
+                <h1 className="text-4xl font-bold">Aktuelle Übersicht</h1>
+                <p className="text-white/60 mt-2">
+                  Kontrollieren Sie Plan, Nutzung und Rechnungen an einem Ort.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Button variant="ghost" className="rounded-full" asChild>
+                  <Link href="/dashboard/billing/statement">
+                    <Download className="w-4 h-4" />
+                    Kontoauszug
+                  </Link>
+                </Button>
+                <Button variant="default" className="rounded-full" onClick={handleUpgrade}>
+                  Upgrade
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
 
-          {/* Current Plan */}
-          {activeTab === "current" && (
-            <motion.div
-              variants={staggerContainer}
-              initial="hidden"
-              animate="visible"
-              className="space-y-6"
-            >
-              <motion.div variants={fadeInUp}>
-                <Card className="p-8 border-2 border-[#8b5cf6]/30 bg-[#8b5cf6]/5">
-                  <div className="flex items-start justify-between mb-6">
-                    <div>
-                      <h2 className="text-2xl font-bold text-white mb-2">
-                        {currentSubscription.plan} Plan
-                      </h2>
-                      <p className="text-white/60">Aktiv seit Oktober 2024</p>
-                    </div>
-                    <div className="px-4 py-2 bg-[#34c759]/20 border border-[#34c759]/30 rounded-lg">
-                      <p className="text-sm font-semibold text-[#34c759]">Aktiv</p>
-                    </div>
-                  </div>
+            <div className="grid sm:grid-cols-3 gap-4 text-sm text-white/70">
+              <div className="rounded-2xl bg-white/5 border border-white/[0.05] p-4">
+                <p className="text-xs uppercase tracking-[0.4em] text-white/40">Plan</p>
+                <p className="text-lg font-semibold text-white mt-2">{currentSubscription.plan}</p>
+                <p className="text-white/40">{currentSubscription.currency} {currentSubscription.price}/Monat</p>
+              </div>
+              <div className="rounded-2xl bg-white/5 border border-white/[0.05] p-4">
+                <p className="text-xs uppercase tracking-[0.4em] text-white/40">Nächste Abrechnung</p>
+                <p className="text-lg font-semibold text-white mt-2">
+                  {new Date(currentSubscription.nextBillingDate).toLocaleDateString("de-CH")}
+                </p>
+                <p className="text-white/40">{currentSubscription.status === "active" ? "Aktiv" : "Inaktiv"}</p>
+              </div>
+              <div className="rounded-2xl bg-white/5 border border-white/[0.05] p-4">
+                <p className="text-xs uppercase tracking-[0.4em] text-white/40">Status</p>
+                <p className="text-lg font-semibold text-[#34c759] mt-2">Gesichert</p>
+                <p className="text-white/40">Priority Support & SLA</p>
+              </div>
+            </div>
+          </motion.section>
 
-                  <div className="grid md:grid-cols-2 gap-8 mb-8">
-                    <div>
-                      <p className="text-white/60 text-sm mb-2">Monatliche Gebühren</p>
-                      <p className="text-4xl font-bold text-white">
-                        {currentSubscription.currency} {currentSubscription.price}
-                        <span className="text-lg font-normal text-white/60">/Monat</span>
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-white/60 text-sm mb-2">Nächste Abrechnung</p>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-5 h-5 text-[#8b5cf6]" />
-                        <p className="text-lg font-semibold text-white">
-                          {new Date(currentSubscription.nextBillingDate).toLocaleDateString(
-                            "de-CH"
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+          <motion.section variants={fadeInUp} className="space-y-6">
+            <div className="grid sm:grid-cols-3 gap-4">
+              {usageStats.map((stat) => (
+                <div key={stat.label} className="rounded-2xl bg-card border border-white/[0.08] p-4 shadow-soft">
+                  <p className="text-xs uppercase tracking-[0.4em] text-white/40">{stat.label}</p>
+                  <p className="text-3xl font-bold text-white mt-3">{stat.value}</p>
+                  <p className="text-white/50 text-sm mt-1">{stat.detail}</p>
+                </div>
+              ))}
+            </div>
+          </motion.section>
 
-                  {/* Features */}
-                  <div className="mb-8">
-                    <h3 className="text-lg font-semibold text-white mb-4">
-                      Inklusive Funktionen
-                    </h3>
-                    <div className="grid md:grid-cols-2 gap-3">
-                      {currentSubscription.features.map((feature, index) => (
-                        <div key={index} className="flex items-center gap-3">
-                          <Check className="w-5 h-5 text-[#34c759] shrink-0" />
-                          <span className="text-white/80">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex gap-3 flex-wrap">
-                    <Button
-                      onClick={() => setActiveTab("plans")}
-                      className="flex items-center gap-2"
-                    >
-                      <ArrowRight className="w-4 h-4" />
-                      Zu anderem Plan wechseln
-                    </Button>
-                    <Button variant="secondary">
-                      <Settings className="w-4 h-4" />
-                      Zahlungsmethode
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={handleCancelSubscription}
-                      className="text-[#ff3b30] border-[#ff3b30]/30 hover:border-[#ff3b30]/50"
-                    >
-                      Abonnement kündigen
-                    </Button>
-                  </div>
-                </Card>
-              </motion.div>
-
-              {/* Usage Stats */}
-              <motion.div variants={fadeInUp}>
-                <Card className="p-6">
-                  <h3 className="text-lg font-semibold text-white mb-6">Nutzung (Diesen Monat)</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="text-white/80">Nachrichten</p>
-                        <p className="text-sm text-white/60">3&apos;456 / 10&apos;000</p>
-                      </div>
-                      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-gradient-to-r from-[#8b5cf6] to-[#3b82f6]"
-                          style={{ width: "34.56%" }}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="text-white/80">Assistenten</p>
-                        <p className="text-sm text-white/60">2 / 3</p>
-                      </div>
-                      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-[#8b5cf6] to-[#3b82f6]" style={{ width: "66.66%" }} />
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
-
-              {/* Invoices Preview */}
-              <motion.div variants={fadeInUp}>
-                <Card className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-white">Letzte Rechnungen</h3>
-                    <button
-                      onClick={() => setActiveTab("invoices")}
-                      className="text-[#8b5cf6] hover:text-[#a78bfa] text-sm font-medium transition-colors"
-                    >
-                      Alle anzeigen
-                    </button>
-                  </div>
-                  <div className="space-y-2">
-                    {invoices.slice(0, 3).map((invoice) => (
-                      <div
-                        key={invoice.id}
-                        className="flex items-center justify-between p-3 bg-white/[0.02] rounded-lg border border-white/5 hover:border-white/10 transition-all"
-                      >
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-white">{invoice.description}</p>
-                          <p className="text-xs text-white/50">
-                            {new Date(invoice.date).toLocaleDateString("de-CH")}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-sm font-semibold text-white">
-                            {invoice.amount} CHF
-                          </span>
-                          <span
-                            className={`text-xs font-semibold px-2 py-1 rounded ${
-                              invoice.status === "paid"
-                                ? "bg-[#34c759]/20 text-[#34c759]"
-                                : "bg-[#f59e0b]/20 text-[#f59e0b]"
-                            }`}
-                          >
-                            {invoice.status === "paid" ? "Bezahlt" : "Ausstehend"}
-                          </span>
-                        </div>
+          <div className="grid lg:grid-cols-[1.3fr_0.7fr] gap-8">
+            <motion.div variants={fadeInUp} className="space-y-6">
+              <Card className="p-6 space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold">Aktueller Plan</h2>
+                  <span className="text-xs uppercase tracking-[0.4em] text-white/40">#{currentSubscription.plan}</span>
+                </div>
+                <div className="rounded-3xl bg-white/5 border border-white/[0.06] p-6 space-y-3">
+                  <p className="text-sm text-white/60">Features</p>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {currentSubscription.features.map((feature) => (
+                      <div key={feature} className="flex items-center gap-2 text-sm text-white/70">
+                        <Check className="w-4 h-4 text-[#34c759]" />
+                        {feature}
                       </div>
                     ))}
                   </div>
-                </Card>
-              </motion.div>
-            </motion.div>
-          )}
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <Button variant="default" className="rounded-full" onClick={handleUpgrade}>
+                    Plan ändern
+                  </Button>
+                  <Button variant="outline" className="rounded-full" onClick={handleCancel}>
+                    Abonnement kündigen
+                  </Button>
+                  <Button variant="ghost" className="rounded-full" asChild>
+                    <Link href="/dashboard/billing/plans">Alle Pläne</Link>
+                  </Button>
+                </div>
+              </Card>
 
-          {/* Plans Tab */}
-          {activeTab === "plans" && (
-            <motion.div
-              variants={staggerContainer}
-              initial="hidden"
-              animate="visible"
-              className="grid md:grid-cols-3 gap-6"
-            >
-              {plans.map((plan, index) => (
-                <motion.div key={index} variants={fadeInUp}>
-                  <Card
-                    className={`p-6 h-full flex flex-col ${
-                      plan.popular
-                        ? "border-2 border-[#8b5cf6] bg-[#8b5cf6]/5"
-                        : "border-2 border-white/10"
-                    }`}
-                  >
-                    {plan.popular && (
-                      <div className="px-3 py-1 bg-[#8b5cf6]/20 border border-[#8b5cf6]/30 rounded-full text-xs font-semibold text-[#8b5cf6] w-fit mb-4">
-                        Beliebt
-                      </div>
-                    )}
-
-                    <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
-                    <p className="text-white/60 text-sm mb-6">{plan.description}</p>
-
-                    <div className="mb-6">
-                      <p className="text-4xl font-bold text-white">
-                        CHF {plan.price}
-                        <span className="text-lg font-normal text-white/60">/Monat</span>
-                      </p>
-                    </div>
-
-                    <div className="space-y-3 mb-6 flex-1">
-                      {plan.features.map((feature, i) => (
-                        <div key={i} className="flex items-center gap-3">
-                          <Check className="w-4 h-4 text-[#34c759] shrink-0" />
-                          <span className="text-white/80 text-sm">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <Button
-                      className="w-full"
-                      variant={plan.popular ? "default" : "secondary"}
-                      onClick={() => handleUpgrade(plan.name)}
-                    >
-                      {currentSubscription.plan === plan.name
-                        ? "Aktueller Plan"
-                        : "Wechseln"}
-                    </Button>
-                  </Card>
-                </motion.div>
-              ))}
-            </motion.div>
-          )}
-
-          {/* Invoices Tab */}
-          {activeTab === "invoices" && (
-            <motion.div variants={fadeInUp} className="space-y-4">
-              {invoices.map((invoice) => (
-                <Card key={invoice.id} className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-white">{invoice.description}</p>
-                      <p className="text-xs text-white/50">
-                        {new Date(invoice.date).toLocaleDateString("de-CH")} • {invoice.id}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <p className="text-sm font-semibold text-white">
-                          {invoice.amount} CHF
+              <Card className="p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-semibold">Letzte Rechnungen</h3>
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href="/dashboard/billing/invoices">Alle anzeigen</Link>
+                  </Button>
+                </div>
+                <div className="space-y-4">
+                  {invoices.map((invoice) => (
+                    <div key={invoice.id} className="flex items-center justify-between rounded-2xl bg-white/5 border border-white/[0.05] p-4">
+                      <div>
+                        <p className="text-sm font-semibold text-white">{invoice.description}</p>
+                        <p className="text-xs text-white/50">
+                          {new Date(invoice.date).toLocaleDateString("de-CH")}
                         </p>
-                        <span
-                          className={`text-xs font-semibold px-2 py-1 rounded inline-block ${
-                            invoice.status === "paid"
-                              ? "bg-[#34c759]/20 text-[#34c759]"
-                              : "bg-[#f59e0b]/20 text-[#f59e0b]"
-                          }`}
-                        >
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold text-white">{invoice.amount} CHF</p>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${invoice.status === "paid" ? "bg-[#34c759]/15 text-[#34c759]" : "bg-[#f59e0b]/15 text-[#f59e0b]"}`}>
                           {invoice.status === "paid" ? "Bezahlt" : "Ausstehend"}
                         </span>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                      >
-                        <Download className="w-4 h-4" />
-                      </Button>
                     </div>
-                  </div>
-                </Card>
-              ))}
+                  ))}
+                </div>
+              </Card>
             </motion.div>
-          )}
 
-          {/* Tab Buttons */}
-          <div className="mt-8 flex gap-2 border-t border-white/10 pt-6">
-            <button
-              onClick={() => setActiveTab("current")}
-              className={`px-4 py-2 font-medium text-sm rounded-lg transition-all ${
-                activeTab === "current"
-                  ? "bg-[#8b5cf6]/20 text-[#8b5cf6] border border-[#8b5cf6]/30"
-                  : "text-white/60 hover:text-white"
-              }`}
-            >
-              Aktueller Plan
-            </button>
-            <button
-              onClick={() => setActiveTab("plans")}
-              className={`px-4 py-2 font-medium text-sm rounded-lg transition-all ${
-                activeTab === "plans"
-                  ? "bg-[#8b5cf6]/20 text-[#8b5cf6] border border-[#8b5cf6]/30"
-                  : "text-white/60 hover:text-white"
-              }`}
-            >
-              Alle Pläne
-            </button>
-            <button
-              onClick={() => setActiveTab("invoices")}
-              className={`px-4 py-2 font-medium text-sm rounded-lg transition-all ${
-                activeTab === "invoices"
-                  ? "bg-[#8b5cf6]/20 text-[#8b5cf6] border border-[#8b5cf6]/30"
-                  : "text-white/60 hover:text-white"
-              }`}
-            >
-              Rechnungen
-            </button>
+            <motion.div variants={fadeInUp} className="space-y-6">
+              <Card className="p-6 space-y-6">
+                <div className="flex items-center gap-3">
+                  <CreditCard className="w-6 h-6 text-[#ff3b30]" />
+                  <h3 className="text-xl font-semibold">Zahlungsmethode</h3>
+                </div>
+                <div className="rounded-2xl bg-white/5 border border-white/[0.06] p-5 space-y-2">
+                  <p className="text-sm text-white/60">{paymentMethod.brand} •••• {paymentMethod.last4}</p>
+                  <p className="text-white text-lg font-semibold">{paymentMethod.holder}</p>
+                  <p className="text-xs text-white/50">Ablauf: {paymentMethod.expiry}</p>
+                </div>
+                <Button className="w-full rounded-full" variant="outline">
+                  Zahlungsmethode aktualisieren
+                </Button>
+                <Button className="w-full rounded-full" variant="ghost">
+                  Rechnung per E-Mail erhalten
+                </Button>
+              </Card>
+
+              <Card className="p-6 space-y-4">
+                <h3 className="text-xl font-semibold">Weitere Pläne</h3>
+                <div className="space-y-4">
+                  {plans.map((plan) => (
+                    <div key={plan.name} className="rounded-2xl border border-white/[0.05] bg-white/5 p-4 flex items-center justify-between">
+                      <div>
+                        <p className="text-lg font-semibold text-white">{plan.name}</p>
+                        <p className="text-sm text-white/50">{plan.description}</p>
+                        <div className="flex flex-wrap gap-2 mt-3 text-xs text-white/60">
+                          {plan.highlights.map((item) => (
+                            <span key={item} className="px-2 py-0.5 bg-white/10 rounded-full">
+                              {item}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-white">CHF {plan.price}</p>
+                        <Button size="sm" variant="ghost" className="mt-3">
+                          {plan.popular ? "Empfohlen" : "Details"}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </motion.div>
           </div>
         </div>
       </motion.main>

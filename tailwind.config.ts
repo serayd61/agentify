@@ -16,6 +16,17 @@ const config: Config = {
         accent: '#ff3b30',
         accentStrong: '#c11b21',
         muted: '#cbd5f5',
+        accentPalette: {
+          blue: '#0066CC',
+          green: '#059669',
+          amber: '#D97706',
+          purple: '#7C3AED',
+        },
+        accentShades: {
+          1: '#ff3b30',
+          2: '#c11b21',
+          3: '#8b1f1b',
+        },
         // Swiss-inspired color palette
         primary: {
           50: '#fef2f2',
@@ -41,12 +52,6 @@ const config: Config = {
           800: '#262626',
           900: '#171717',
           950: '#0a0a0a',
-        },
-        accent: {
-          blue: '#0066CC',
-          green: '#059669',
-          amber: '#D97706',
-          purple: '#7C3AED',
         },
       },
       fontFamily: {
