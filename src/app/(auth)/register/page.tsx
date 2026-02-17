@@ -185,7 +185,7 @@ export default function RegisterPage() {
 
         <motion.div
           variants={formVariant}
-          className="px-6 py-8 sm:px-8 sm:py-10"
+          className="px-6 py-8 sm:px-8 sm:py-10 bg-card border border-white/[0.08] shadow-soft rounded-[36px]"
         >
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#ff3b30] to-[#ff6b5e] flex items-center justify-center">
