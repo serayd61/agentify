@@ -257,6 +257,25 @@ ALTER TABLE customers ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT;
 ALTER TABLE customers ADD COLUMN IF NOT EXISTS subscription_status TEXT DEFAULT 'inactive';
 ALTER TABLE customers ADD COLUMN IF NOT EXISTS current_package_id UUID REFERENCES packages(id);
 
+-- Lead capture table
+CREATE TABLE IF NOT EXISTS leads (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  agent_id UUID REFERENCES agents(id) ON DELETE CASCADE,
+  customer_id UUID REFERENCES customers(id),
+  name VARCHAR(200),
+  email VARCHAR(200),
+  phone VARCHAR(50),
+  message TEXT,
+  source VARCHAR(50) DEFAULT 'widget',
+  status VARCHAR(20) DEFAULT 'new',
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view own leads" ON leads
+  FOR SELECT USING (customer_id = auth.uid());
+
 -- ========================================
 -- ROW LEVEL SECURITY
 -- ========================================
