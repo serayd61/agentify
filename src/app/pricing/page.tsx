@@ -80,15 +80,17 @@ const FALLBACK_PACKAGES: Package[] = [
   },
 ];
 
-const fetchWithTimeout = async <T>(promise: Promise<T>, timeoutMs = 3000) => {
-  let timeoutId: ReturnType<typeof setTimeout>;
+const fetchWithTimeout = async <T,>(promise: Promise<T>, timeoutMs = 3000) => {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
   const timeoutPromise = new Promise<T>((_, reject) => {
     timeoutId = setTimeout(() => reject(new Error("Timeout")), timeoutMs);
   });
   try {
     return await Promise.race([promise, timeoutPromise]);
   } finally {
-    clearTimeout(timeoutId);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
   }
 };
 
@@ -111,14 +113,12 @@ export default function PricingPage() {
         return;
       }
       try {
-        const query = () =>
-          supabase
-            .from("sectors")
-            .select("id, name_de")
-            .eq("is_active", true)
-            .order("sort_order")
-            .then((res) => res);
-        const { data } = (await fetchWithTimeout(query)) as { data: Sector[] | null };
+        const query = supabase
+          .from("sectors")
+          .select("id, name_de")
+          .eq("is_active", true)
+          .order("sort_order");
+        const { data } = (await fetchWithTimeout(Promise.resolve(query))) as { data: Sector[] | null };
         if (!mounted) return;
         if (data?.length) {
           setSectors(data);
@@ -151,16 +151,14 @@ export default function PricingPage() {
     let mounted = true;
     const loadPackages = async () => {
       try {
-        const query = () =>
-          supabase
-            .from("packages")
-            .select(
-              "id, tier, name_de, price_monthly, price_yearly, is_popular, features:package_features(feature_name_de, is_included, is_highlighted, sort_order)"
-            )
-            .eq("sector_id", selectedSector)
-            .order("price_monthly")
-            .then((res) => res);
-        const { data } = (await fetchWithTimeout(query)) as { data: Package[] | null };
+        const query = supabase
+          .from("packages")
+          .select(
+            "id, tier, name_de, price_monthly, price_yearly, is_popular, features:package_features(feature_name_de, is_included, is_highlighted, sort_order)"
+          )
+          .eq("sector_id", selectedSector)
+          .order("price_monthly");
+        const { data } = (await fetchWithTimeout(Promise.resolve(query))) as { data: Package[] | null };
         if (!mounted) return;
         if (data?.length) {
           setPackages(data);

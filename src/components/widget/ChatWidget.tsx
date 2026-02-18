@@ -17,6 +17,7 @@ interface ChatWidgetProps {
   primaryColor?: string;
   greeting?: string;
   position?: "bottom-right" | "bottom-left";
+  agentId?: string;
 }
 
 export function ChatWidget({
@@ -25,6 +26,7 @@ export function ChatWidget({
   primaryColor = "#DC2626",
   greeting = "Grüezi! Wie kann ich Ihnen helfen?",
   position = "bottom-right",
+  agentId,
 }: ChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -37,6 +39,10 @@ export function ChatWidget({
   ]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [showLeadForm, setShowLeadForm] = useState(false);
+  const [isSubmittingLead, setIsSubmittingLead] = useState(false);
+  const [leadSuccess, setLeadSuccess] = useState(false);
+  const [leadData, setLeadData] = useState({ name: "", phone: "", message: "" });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -80,6 +86,35 @@ export function ChatWidget({
 
     setMessages((prev) => [...prev, assistantMessage]);
     setIsTyping(false);
+  };
+
+  const handleLeadSubmit = async () => {
+    if (!agentId) {
+      setLeadSuccess(false);
+      return;
+    }
+    setIsSubmittingLead(true);
+    setLeadSuccess(false);
+    try {
+      const response = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agentId,
+          name: leadData.name,
+          phone: leadData.phone,
+          message: leadData.message,
+        }),
+      });
+      if (response.ok) {
+        setLeadSuccess(true);
+        setLeadData({ name: "", phone: "", message: "" });
+      }
+    } catch (error) {
+      console.error("Lead submit failed", error);
+    } finally {
+      setIsSubmittingLead(false);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -133,7 +168,7 @@ export function ChatWidget({
           </div>
 
           {/* Messages */}
-          <div className="h-96 overflow-y-auto p-4 space-y-4 bg-neutral-50">
+          <div className="h-72 overflow-y-auto p-4 space-y-4 bg-neutral-50">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -171,6 +206,59 @@ export function ChatWidget({
 
             <div ref={messagesEndRef} />
           </div>
+
+          {showLeadForm ? (
+            <div className="px-4 pb-3 space-y-3 bg-white border-t border-neutral-200">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold">Rückruf anfordern</p>
+                <button
+                  onClick={() => setShowLeadForm(false)}
+                  className="text-xs text-neutral-500 hover:text-neutral-700"
+                >
+                  Abbrechen
+                </button>
+              </div>
+              <input
+                value={leadData.name}
+                onChange={(e) => setLeadData((prev) => ({ ...prev, name: e.target.value }))}
+                placeholder="Name"
+                className="w-full px-3 py-2 rounded-xl border border-neutral-200 text-sm"
+              />
+              <input
+                value={leadData.phone}
+                onChange={(e) => setLeadData((prev) => ({ ...prev, phone: e.target.value }))}
+                placeholder="Telefonnummer"
+                className="w-full px-3 py-2 rounded-xl border border-neutral-200 text-sm"
+              />
+              <textarea
+                value={leadData.message}
+                onChange={(e) => setLeadData((prev) => ({ ...prev, message: e.target.value }))}
+                placeholder="Wie dürfen wir Sie unterstützen?"
+                className="w-full px-3 py-2 rounded-xl border border-neutral-200 text-sm"
+                rows={3}
+              />
+              <button
+                onClick={handleLeadSubmit}
+                disabled={isSubmittingLead}
+                className="w-full px-4 py-2 rounded-xl text-white"
+                style={{ backgroundColor: primaryColor }}
+              >
+                {isSubmittingLead ? "Senden..." : "Absenden"}
+              </button>
+              {leadSuccess && (
+                <p className="text-xs text-green-600">Danke! Wir melden uns bald.</p>
+              )}
+            </div>
+          ) : (
+            <div className="px-4 pb-3 bg-white border-t border-neutral-200">
+              <button
+                onClick={() => setShowLeadForm(true)}
+                className="w-full text-left text-sm text-neutral-600 underline"
+              >
+                Rückruf anfordern
+              </button>
+            </div>
+          )}
 
           {/* Input */}
           <div className="p-4 bg-white border-t border-neutral-200">
