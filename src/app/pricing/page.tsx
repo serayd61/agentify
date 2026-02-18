@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import PurchaseButton from "@/components/PurchaseButton";
 import { createClient } from "@/lib/supabase/client";
 import { Loader2 } from "lucide-react";
 
@@ -165,9 +165,15 @@ export default function PricingPage() {
                     </div>
                   ))}
                 </div>
-                <Button className="w-full rounded-full" variant="default" asChild>
-                  <Link href="/register">Jetzt starten</Link>
-                </Button>
+                <PurchaseButton
+                  packageId={pkg.id}
+                  sectorId={selectedSector ?? ""}
+                  billingCycle={isYearly ? "yearly" : "monthly"}
+                  className="w-full rounded-full bg-gradient-to-r from-[#ff6b53] via-[#ff3b30] to-[#c11b21] text-white font-semibold py-3"
+                  disabled={!selectedSector}
+                >
+                  Jetzt starten
+                </PurchaseButton>
               </Card>
             ))}
           </div>

@@ -3,13 +3,14 @@ import Stripe from "stripe";
 import { createServerClient } from "@/lib/supabase/server";
 
 const stripeSecret = process.env.STRIPE_SECRET_KEY;
+const API_VERSION: Stripe.LatestApiVersion = "2026-01-28.clover";
 
 if (!stripeSecret) {
   console.warn("Stripe secret key is not configured.");
 }
 
 const stripe = stripeSecret
-  ? new Stripe(stripeSecret, { apiVersion: "2023-10-16" })
+  ? new Stripe(stripeSecret, { apiVersion: API_VERSION })
   : null;
 
 type CheckoutPayload = {

@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import PurchaseButton from "@/components/PurchaseButton";
 import { createClient } from "@/lib/supabase/client";
 import { Loader2 } from "lucide-react";
 
@@ -36,7 +36,7 @@ interface Package {
 
 const supabase = createClient();
 
-function PackageCard({ pkg, isYearly }: { pkg: Package; isYearly: boolean }) {
+function PackageCard({ pkg, isYearly, sectorId }: { pkg: Package; isYearly: boolean; sectorId: string | null }) {
   return (
     <Card className="space-y-4 bg-card border border-white/[0.08]" hover>
       <div className="flex items-center justify-between">
@@ -65,9 +65,15 @@ function PackageCard({ pkg, isYearly }: { pkg: Package; isYearly: boolean }) {
           </div>
         ))}
       </div>
-      <Button className="w-full rounded-full" variant="default" asChild>
-        <Link href={`/register?plan=${pkg.tier}`}>Jetzt starten</Link>
-      </Button>
+      <PurchaseButton
+        packageId={pkg.id}
+        sectorId={sectorId ?? ""}
+        billingCycle={isYearly ? "yearly" : "monthly"}
+        className="w-full rounded-full bg-gradient-to-r from-[#ff6b53] via-[#ff3b30] to-[#c11b21] text-white font-semibold py-3"
+        disabled={!sectorId}
+      >
+        Jetzt starten
+      </PurchaseButton>
     </Card>
   );
 }
@@ -167,7 +173,7 @@ export default function MarketplacePage() {
 
           <div className="grid md:grid-cols-3 gap-6">
             {displayPackages.map((pkg) => (
-              <PackageCard key={pkg.id} pkg={pkg} isYearly={isYearly} />
+              <PackageCard key={pkg.id} pkg={pkg} isYearly={isYearly} sectorId={selectedSector} />
             ))}
           </div>
         </div>
