@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import PurchaseButton from "@/components/PurchaseButton";
 import { createClient } from "@/lib/supabase/client";
 import { Loader2 } from "lucide-react";
 
@@ -32,6 +32,62 @@ interface Package {
 
 const supabase = createClient();
 
+const FALLBACK_SECTORS: Sector[] = [
+  { id: "treuhand", name_de: "Treuhand & Finanzen" },
+  { id: "handwerk", name_de: "Handwerk & Technik" },
+  { id: "gesundheit", name_de: "Gesundheit & Praxis" },
+];
+
+const FALLBACK_PACKAGES: Package[] = [
+  {
+    id: "starter",
+    tier: "Starter",
+    name_de: "Starter",
+    price_monthly: 290,
+    price_yearly: 3200,
+    is_popular: false,
+    features: [
+      { feature_name_de: "Bis 50 Nachrichten", is_included: true, is_highlighted: false },
+      { feature_name_de: "Agentify Branding", is_included: true, is_highlighted: false },
+      { feature_name_de: "Basis-Reporting", is_included: true, is_highlighted: false },
+    ],
+  },
+  {
+    id: "business",
+    tier: "Business",
+    name_de: "Business",
+    price_monthly: 590,
+    price_yearly: 6600,
+    is_popular: true,
+    features: [
+      { feature_name_de: "Bis 300 Nachrichten", is_included: true, is_highlighted: true },
+      { feature_name_de: "Custom Widget", is_included: true, is_highlighted: false },
+      { feature_name_de: "Analytics Dashboard", is_included: true, is_highlighted: false },
+    ],
+  },
+  {
+    id: "enterprise",
+    tier: "Enterprise",
+    name_de: "Enterprise",
+    price_monthly: 990,
+    price_yearly: 11000,
+    is_popular: false,
+    features: [
+      { feature_name_de: "Unlimitierte Nachrichten", is_included: true, is_highlighted: true },
+      { feature_name_de: "White-Label", is_included: true, is_highlighted: true },
+      { feature_name_de: "Dedicated Support", is_included: true, is_highlighted: false },
+    ],
+  },
+];
+
+const fetchWithTimeout = async <T,>(fn: () => PromiseLike<T>, timeoutMs = 3000) => {
+  const promise = Promise.resolve(fn());
+  return Promise.race<T>([
+    promise,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error("Timeout")), timeoutMs)),
+  ]);
+};
+
 export default function PricingPage() {
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [selectedSector, setSelectedSector] = useState<string | null>(null);
@@ -40,40 +96,82 @@ export default function PricingPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
     const load = async () => {
       if (!supabase) {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+          setSectors(FALLBACK_SECTORS);
+          setSelectedSector(FALLBACK_SECTORS[0].id);
+        }
         return;
       }
-      const { data } = await supabase
-        .from("sectors")
-        .select("id, name_de")
-        .eq("is_active", true)
-        .order("sort_order");
-      if (data) {
-        setSectors(data);
-        setSelectedSector(data[0]?.id ?? null);
+      try {
+        const query = () =>
+          supabase
+            .from("sectors")
+            .select("id, name_de")
+            .eq("is_active", true)
+            .order("sort_order")
+            .then((res) => res);
+        const { data } = (await fetchWithTimeout(query)) as { data: Sector[] | null };
+        if (!mounted) return;
+        if (data?.length) {
+          setSectors(data);
+          setSelectedSector(data[0]?.id ?? FALLBACK_SECTORS[0].id);
+        } else {
+          setSectors(FALLBACK_SECTORS);
+          setSelectedSector(FALLBACK_SECTORS[0].id);
+        }
+      } catch (error) {
+        console.warn("Pricing sectors timeout", error);
+        if (mounted) {
+          setSectors(FALLBACK_SECTORS);
+          setSelectedSector(FALLBACK_SECTORS[0].id);
+        }
+      } finally {
+        if (mounted) setLoading(false);
       }
-      setLoading(false);
     };
     load();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   useEffect(() => {
-    if (!selectedSector || !supabase) return;
+    if (!supabase || !selectedSector) {
+      setPackages(FALLBACK_PACKAGES);
+      return;
+    }
+    let mounted = true;
     const loadPackages = async () => {
-      const { data } = await supabase
-        .from("packages")
-        .select(
-          "id, tier, name_de, price_monthly, price_yearly, is_popular, features:package_features(feature_name_de, is_included, is_highlighted, sort_order)"
-        )
-        .eq("sector_id", selectedSector)
-        .order("price_monthly");
-      if (data) {
-        setPackages(data);
+      try {
+        const query = () =>
+          supabase
+            .from("packages")
+            .select(
+              "id, tier, name_de, price_monthly, price_yearly, is_popular, features:package_features(feature_name_de, is_included, is_highlighted, sort_order)"
+            )
+            .eq("sector_id", selectedSector)
+            .order("price_monthly")
+            .then((res) => res);
+        const { data } = (await fetchWithTimeout(query)) as { data: Package[] | null };
+        if (!mounted) return;
+        if (data?.length) {
+          setPackages(data);
+        } else {
+          setPackages(FALLBACK_PACKAGES);
+        }
+      } catch (error) {
+        console.warn("Pricing packages timeout", error);
+        if (mounted) setPackages(FALLBACK_PACKAGES);
       }
     };
     loadPackages();
+    return () => {
+      mounted = false;
+    };
   }, [selectedSector]);
 
   const featureRows = useMemo(() => {
@@ -165,15 +263,9 @@ export default function PricingPage() {
                     </div>
                   ))}
                 </div>
-                <PurchaseButton
-                  packageId={pkg.id}
-                  sectorId={selectedSector ?? ""}
-                  billingCycle={isYearly ? "yearly" : "monthly"}
-                  className="w-full rounded-full bg-gradient-to-r from-[#ff6b53] via-[#ff3b30] to-[#c11b21] text-white font-semibold py-3"
-                  disabled={!selectedSector}
-                >
-                  Jetzt starten
-                </PurchaseButton>
+                <Button className="w-full rounded-full" variant="default" asChild>
+                  <Link href="/register">Jetzt starten</Link>
+                </Button>
               </Card>
             ))}
           </div>
