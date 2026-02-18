@@ -243,6 +243,21 @@ END $$;
 -- USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
 
 -- ========================================
+-- SUPABASE EXTENSIONS / MIGRATIONS
+-- ========================================
+
+-- Stripe fields for agents
+ALTER TABLE agents ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT;
+ALTER TABLE agents ADD COLUMN IF NOT EXISTS messages_used INTEGER DEFAULT 0;
+ALTER TABLE agents ADD COLUMN IF NOT EXISTS subscription_start DATE;
+ALTER TABLE agents ADD COLUMN IF NOT EXISTS subscription_end DATE;
+
+-- Stripe fields for customers
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT;
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS subscription_status TEXT DEFAULT 'inactive';
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS current_package_id UUID REFERENCES packages(id);
+
+-- ========================================
 -- ROW LEVEL SECURITY
 -- ========================================
 ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
