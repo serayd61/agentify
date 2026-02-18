@@ -80,12 +80,16 @@ const FALLBACK_PACKAGES: Package[] = [
   },
 ];
 
-const fetchWithTimeout = async <T,>(fn: () => PromiseLike<T>, timeoutMs = 3000) => {
-  const promise = Promise.resolve(fn());
-  return Promise.race<T>([
-    promise,
-    new Promise<T>((_, reject) => setTimeout(() => reject(new Error("Timeout")), timeoutMs)),
-  ]);
+const fetchWithTimeout = async <T>(promise: Promise<T>, timeoutMs = 3000) => {
+  let timeoutId: ReturnType<typeof setTimeout>;
+  const timeoutPromise = new Promise<T>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error("Timeout")), timeoutMs);
+  });
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    clearTimeout(timeoutId);
+  }
 };
 
 export default function PricingPage() {
