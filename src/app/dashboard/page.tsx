@@ -4,6 +4,8 @@ import React, { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useToast } from "@/components/ui/toast";
 import { getSupabaseBrowser } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { motion } from "framer-motion";
@@ -18,7 +20,6 @@ import {
   ArrowRight,
   Upload,
   LifeBuoy,
-  Calendar,
   CheckCircle2,
 } from "lucide-react";
 
@@ -33,6 +34,10 @@ type CustomerAgent = {
   id: string;
   name: string;
   status: string;
+  widget_config?: Record<string, unknown>;
+  stripe_subscription_id?: string;
+  sectors?: { name_de: string };
+  packages?: { name_de: string };
 };
 
 const navItems = [
@@ -41,12 +46,6 @@ const navItems = [
   { label: "Integrationen", icon: Upload, href: "/dashboard/integrations" },
   { label: "Einstellungen", icon: Settings, href: "/dashboard/settings" },
   { label: "Abrechnung", icon: CreditCard, href: "/dashboard/billing" },
-];
-
-const sampleActivities = [
-  { title: "Agent \"Muster\" gestartet", time: "vor 2h" },
-  { title: "Widget-Code kopiert", time: "vor 4h" },
-  { title: "Neues Ticket erstellt", time: "gestern" },
 ];
 
 const formVariant = {
@@ -58,11 +57,29 @@ const formVariant = {
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [agents, setAgents] = useState<CustomerAgent[]>([]);
+  const [subscription, setSubscription] = useState<{ plan: string; price_monthly: number; message_limit: number | null; status: string; current_period_end: string | null } | null>(null);
+  const [messageUsage, setMessageUsage] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [copiedAgentId, setCopiedAgentId] = useState<string | null>(null);
+
+  const widgetSnippet = (agentId: string) => `<script src="https://agentify.ch/api/widget/${agentId}"></script>`;
+
+  const handleCopyWidget = async (agentId: string) => {
+    try {
+      await navigator.clipboard.writeText(widgetSnippet(agentId));
+      setCopiedAgentId(agentId);
+      toast({ title: "Widget kopiert", description: "Embed-Code in die Zwischenablage kopiert.", variant: "success" });
+      setTimeout(() => setCopiedAgentId(null), 2500);
+    } catch (error) {
+      console.error(error);
+      toast({ title: "Kopieren fehlgeschlagen", description: "Bitte manuell kopieren.", variant: "warning" });
+    }
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -84,11 +101,31 @@ export default function DashboardPage() {
 
       const { data: agentsData } = await supabase
         .from("customer_agents")
-        .select("id, name, status")
+        .select("id, name, status, stripe_subscription_id, sectors(name_de), packages(name_de)")
         .eq("customer_id", customerData?.id)
         .order("created_at", { ascending: false });
 
       setAgents(agentsData || []);
+
+      const agentIds = (agentsData || []).map((agent: CustomerAgent) => agent.id);
+      if (agentIds.length > 0) {
+        const { data: usageData } = await supabase
+          .from("usage_stats")
+          .select("message_count")
+          .in("agent_id", agentIds);
+        const totalUsage = usageData?.reduce((sum: number, row: { message_count: number | null }) => sum + (row.message_count ?? 0), 0) ?? 0;
+        setMessageUsage(totalUsage);
+      }
+
+      const { data: subscriptionData } = await supabase
+        .from("subscriptions")
+        .select("plan, price_monthly, message_limit, status, current_period_end")
+        .eq("customer_id", customerData?.id)
+        .order("current_period_end", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      setSubscription(subscriptionData ?? null);
       setLoading(false);
     };
 
@@ -271,28 +308,50 @@ export default function DashboardPage() {
                 ))}
               </section>
 
-              <div className="mt-8 grid gap-6 lg:grid-cols-[1.3fr_0.7fr] grid-container">
+              <div className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_0.9fr] grid-container">
                 <motion.div
                   className="rounded-[32px] bg-card border border-white/[0.08] p-6 shadow-soft"
                   variants={formVariant}
                   initial="hidden"
                   animate="visible"
                 >
-                  <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h2 className="text-xl font-bold">Letzte Aktivitäten</h2>
-                      <p className="text-xs text-white/50">Immer auf dem Laufenden bleiben</p>
+                      <h2 className="text-xl font-bold">Aktive Abonnement</h2>
+                      <p className="text-xs text-white/50">Übersicht zu deinem aktuellen Plan</p>
                     </div>
-                    <Calendar className="w-5 h-5 text-white/60" />
+                    <CreditCard className="w-5 h-5 text-white/60" />
                   </div>
-                  <ul className="space-y-3">
-                    {sampleActivities.map((item) => (
-                      <li key={item.title} className="flex items-center justify-between text-sm text-white/60">
-                        <span>{item.title}</span>
-                        <span className="text-white/40 text-xs">{item.time}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  {subscription ? (
+                    <div className="space-y-3">
+                      <p className="text-sm text-white/60">Paket: <span className="text-white font-semibold">{subscription.plan}</span></p>
+                      <p className="text-sm text-white/60">Nachrichten: {messageUsage} / {subscription.message_limit ?? "unlimitiert"}</p>
+                      <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-[#ff6b53] to-[#c11b21]"
+                          style={{ width: subscription.message_limit ? `${Math.min((messageUsage / subscription.message_limit) * 100, 100)}%` : "100%" }}
+                        />
+                      </div>
+                      {subscription.current_period_end && (
+                        <p className="text-xs text-white/50">Nächste Verlängerung: {new Date(subscription.current_period_end).toLocaleDateString("de-CH")}</p>
+                      )}
+                      <div className="flex flex-wrap gap-3">
+                        <Button variant="default" className="rounded-full" asChild>
+                          <Link href="/dashboard/billing">Paket verwalten</Link>
+                        </Button>
+                        <Button variant="ghost" className="rounded-full" asChild>
+                          <Link href="/dashboard/agents/new">Neuen Agent erstellen</Link>
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <p className="text-sm text-white/60">Noch kein aktives Abo vorhanden.</p>
+                      <Button variant="default" className="rounded-full" asChild>
+                        <Link href="/pricing">Jetzt starten</Link>
+                      </Button>
+                    </div>
+                  )}
                 </motion.div>
 
                 <motion.div
@@ -318,6 +377,61 @@ export default function DashboardPage() {
                   </div>
                 </motion.div>
               </div>
+
+              <section className="mt-8 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold">Meine Agenten</h2>
+                    <p className="text-sm text-white/50">Verwalte deine laufenden Assistenten und kopiere Widget-Codes</p>
+                  </div>
+                  <Button variant="secondary" asChild className="rounded-full">
+                    <Link href="/dashboard/agents/new">Erstellen</Link>
+                  </Button>
+                </div>
+
+                {agents.length === 0 ? (
+                  <Card className="text-center space-y-3">
+                    <p className="text-white/70">Noch keine Agenten konfiguriert.</p>
+                    <Button asChild>
+                      <Link href="/dashboard/agents/new">Ersten Agenten erstellen</Link>
+                    </Button>
+                  </Card>
+                ) : (
+                  <div className="grid gap-4">
+                    {agents.map((agent) => (
+                      <Card key={agent.id} className="space-y-4 bg-[#06060d] border border-white/[0.08]">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="text-lg font-semibold text-white">{agent.name}</h3>
+                            <p className="text-xs uppercase tracking-[0.4em] text-white/40">{agent.sectors?.name_de ?? "Agent"}</p>
+                          </div>
+                          <span className={`px-3 py-1 text-xs rounded-full ${agent.status === "active" ? "bg-[#34c759]/20 text-[#34c759]" : "bg-white/10 text-white/60"}`}>
+                            {agent.status}
+                          </span>
+                        </div>
+                        <p className="text-xs text-white/60">Widget Snippet:</p>
+                        <div className="relative rounded-2xl border border-white/[0.08] bg-[#05050a]/70 p-3 text-xs font-mono text-white/70">
+                          <code className="block break-words">{widgetSnippet(agent.id)}</code>
+                          <button
+                            onClick={() => handleCopyWidget(agent.id)}
+                            className="absolute top-2 right-2 text-white/60 hover:text-white text-[10px]"
+                          >
+                            {copiedAgentId === agent.id ? "Kopiert" : "Kopieren"}
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-3">
+                          <Button variant="default" size="sm" asChild>
+                            <Link href={`/dashboard/agents/${agent.id}`}>Agent bearbeiten</Link>
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleCopyWidget(agent.id)}>
+                            Widget-Code
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </section>
             </div>
           </motion.div>
         </div>
