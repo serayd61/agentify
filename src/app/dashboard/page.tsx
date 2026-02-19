@@ -21,6 +21,7 @@ import {
   Upload,
   LifeBuoy,
   CheckCircle2,
+  CalendarDays,
 } from "lucide-react";
 
 type Customer = {
@@ -43,6 +44,8 @@ type CustomerAgent = {
 const navItems = [
   { label: "Übersicht", icon: BarChart3, href: "/dashboard" },
   { label: "Meine Agents", icon: Bot, href: "/dashboard/agents" },
+  { label: "Leads", icon: LifeBuoy, href: "/dashboard/leads" },
+  { label: "Termine", icon: CalendarDays, href: "/dashboard/appointments" },
   { label: "Integrationen", icon: Upload, href: "/dashboard/integrations" },
   { label: "Einstellungen", icon: Settings, href: "/dashboard/settings" },
   { label: "Abrechnung", icon: CreditCard, href: "/dashboard/billing" },

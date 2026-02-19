@@ -43,8 +43,30 @@ export async function POST(request: NextRequest) {
 
   const payload: BuilderPayload = await request.json();
   const { sector, plan, company, logoName, content, faqs } = payload;
+  const customerId = customer.id;
 
-  const { data, error } = await supabase
+  const { data: sectorRow } = await supabase
+    .from("sectors")
+    .select("id")
+    .eq("slug", sector)
+    .maybeSingle();
+
+  if (!sectorRow?.id) {
+    return NextResponse.json({ error: "Sektor nicht gefunden" }, { status: 400 });
+  }
+
+  const { data: packageRow } = await supabase
+    .from("packages")
+    .select("id")
+    .eq("sector_id", sectorRow.id)
+    .eq("tier", plan)
+    .maybeSingle();
+
+  if (!packageRow?.id) {
+    return NextResponse.json({ error: "Paket nicht gefunden" }, { status: 400 });
+  }
+
+  const { data: customerAgent, error: customerAgentError } = await supabase
     .from("customer_agents")
     .insert({
       customer_id: customer.id,
@@ -63,9 +85,25 @@ export async function POST(request: NextRequest) {
     .select("id")
     .maybeSingle();
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (customerAgentError || !customerAgent?.id) {
+    console.error("Customer agent creation failed", customerAgentError);
+    return NextResponse.json({ error: "Agent konnte nicht erstellt werden" }, { status: 500 });
   }
 
-  return NextResponse.json({ success: true, agentId: data?.id });
+  // agents tablosuna da ekle - basitleştirilmiş
+  const { error: agentError } = await supabase
+    .from("agents")
+    .insert({
+      customer_id: customerId,
+      name: company.name || "Mein Agent",
+      status: "active",
+    })
+    .select()
+    .single();
+
+  if (agentError) {
+    console.error("Agents insert error:", agentError);
+  }
+
+  return NextResponse.json({ success: true, agentId: customerAgent.id });
 }

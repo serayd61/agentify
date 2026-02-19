@@ -276,6 +276,26 @@ ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view own leads" ON leads
   FOR SELECT USING (customer_id = auth.uid());
 
+-- Appointments table
+CREATE TABLE IF NOT EXISTS appointments (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  agent_id UUID REFERENCES agents(id) ON DELETE CASCADE,
+  customer_id UUID REFERENCES customers(id),
+  name VARCHAR(200) NOT NULL,
+  email VARCHAR(200),
+  phone VARCHAR(50),
+  date DATE NOT NULL,
+  time TIME NOT NULL,
+  service VARCHAR(200),
+  notes TEXT,
+  status VARCHAR(20) DEFAULT 'pending',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE appointments ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view own appointments" ON appointments
+  FOR SELECT USING (customer_id = auth.uid());
+
 -- ========================================
 -- ROW LEVEL SECURITY
 -- ========================================
@@ -481,6 +501,7 @@ CREATE TABLE IF NOT EXISTS agents (
   customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
   sector_id UUID REFERENCES sectors(id),
   package_id UUID REFERENCES packages(id),
+  customer_agent_id UUID REFERENCES customer_agents(id),
   name VARCHAR(100) NOT NULL,
   status VARCHAR(20) DEFAULT 'draft' CHECK (status IN ('draft', 'active', 'paused', 'cancelled')),
   config JSONB DEFAULT '{}',

@@ -43,6 +43,11 @@ export function ChatWidget({
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
   const [leadSuccess, setLeadSuccess] = useState(false);
   const [leadData, setLeadData] = useState({ name: "", phone: "", message: "" });
+  const [showApptForm, setShowApptForm] = useState(false);
+  const [isSubmittingAppt, setIsSubmittingAppt] = useState(false);
+  const [apptSuccess, setApptSuccess] = useState(false);
+  const [apptData, setApptData] = useState({ name: "", phone: "", date: "", time: "", notes: "" });
+  const timeSlots = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -114,6 +119,36 @@ export function ChatWidget({
       console.error("Lead submit failed", error);
     } finally {
       setIsSubmittingLead(false);
+    }
+  };
+
+  const handleAppointmentSubmit = async () => {
+    if (!agentId) return;
+    if (!apptData.name || !apptData.date || !apptData.time) return;
+    setIsSubmittingAppt(true);
+    setApptSuccess(false);
+    try {
+      const response = await fetch("/api/appointments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agentId,
+          name: apptData.name,
+          email: "",
+          phone: apptData.phone,
+          date: apptData.date,
+          time: apptData.time,
+          notes: apptData.notes,
+        }),
+      });
+      if (response.ok) {
+        setApptSuccess(true);
+        setApptData({ name: "", phone: "", date: "", time: "", notes: "" });
+      }
+    } catch (error) {
+      console.error("Appointment submit failed", error);
+    } finally {
+      setIsSubmittingAppt(false);
     }
   };
 
@@ -207,58 +242,139 @@ export function ChatWidget({
             <div ref={messagesEndRef} />
           </div>
 
-          {showLeadForm ? (
-            <div className="px-4 pb-3 space-y-3 bg-white border-t border-neutral-200">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold">Rückruf anfordern</p>
+          <div className="px-4 pb-3 bg-white border-t border-neutral-200 space-y-3">
+            {!showLeadForm && !showApptForm && (
+              <div className="flex flex-col gap-2">
                 <button
-                  onClick={() => setShowLeadForm(false)}
-                  className="text-xs text-neutral-500 hover:text-neutral-700"
+                  onClick={() => {
+                    setShowLeadForm(true);
+                    setShowApptForm(false);
+                    setLeadSuccess(false);
+                  }}
+                  className="w-full text-left text-sm text-neutral-600 underline"
                 >
-                  Abbrechen
+                  Rückruf anfordern
+                </button>
+                <button
+                  onClick={() => {
+                    setShowApptForm(true);
+                    setShowLeadForm(false);
+                    setApptSuccess(false);
+                  }}
+                  className="w-full text-left text-sm text-neutral-600 underline"
+                >
+                  Termin buchen
                 </button>
               </div>
-              <input
-                value={leadData.name}
-                onChange={(e) => setLeadData((prev) => ({ ...prev, name: e.target.value }))}
-                placeholder="Name"
-                className="w-full px-3 py-2 rounded-xl border border-neutral-200 text-sm"
-              />
-              <input
-                value={leadData.phone}
-                onChange={(e) => setLeadData((prev) => ({ ...prev, phone: e.target.value }))}
-                placeholder="Telefonnummer"
-                className="w-full px-3 py-2 rounded-xl border border-neutral-200 text-sm"
-              />
-              <textarea
-                value={leadData.message}
-                onChange={(e) => setLeadData((prev) => ({ ...prev, message: e.target.value }))}
-                placeholder="Wie dürfen wir Sie unterstützen?"
-                className="w-full px-3 py-2 rounded-xl border border-neutral-200 text-sm"
-                rows={3}
-              />
-              <button
-                onClick={handleLeadSubmit}
-                disabled={isSubmittingLead}
-                className="w-full px-4 py-2 rounded-xl text-white"
-                style={{ backgroundColor: primaryColor }}
-              >
-                {isSubmittingLead ? "Senden..." : "Absenden"}
-              </button>
-              {leadSuccess && (
-                <p className="text-xs text-green-600">Danke! Wir melden uns bald.</p>
-              )}
-            </div>
-          ) : (
-            <div className="px-4 pb-3 bg-white border-t border-neutral-200">
-              <button
-                onClick={() => setShowLeadForm(true)}
-                className="w-full text-left text-sm text-neutral-600 underline"
-              >
-                Rückruf anfordern
-              </button>
-            </div>
-          )}
+            )}
+
+            {showLeadForm && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold">Rückruf anfordern</p>
+                  <button
+                    onClick={() => setShowLeadForm(false)}
+                    className="text-xs text-neutral-500 hover:text-neutral-700"
+                  >
+                    Abbrechen
+                  </button>
+                </div>
+                <input
+                  value={leadData.name}
+                  onChange={(e) => setLeadData((prev) => ({ ...prev, name: e.target.value }))}
+                  placeholder="Name"
+                  className="w-full px-3 py-2 rounded-xl border border-neutral-200 text-sm"
+                />
+                <input
+                  value={leadData.phone}
+                  onChange={(e) => setLeadData((prev) => ({ ...prev, phone: e.target.value }))}
+                  placeholder="Telefonnummer"
+                  className="w-full px-3 py-2 rounded-xl border border-neutral-200 text-sm"
+                />
+                <textarea
+                  value={leadData.message}
+                  onChange={(e) => setLeadData((prev) => ({ ...prev, message: e.target.value }))}
+                  placeholder="Wie dürfen wir Sie unterstützen?"
+                  rows={3}
+                  className="w-full px-3 py-2 rounded-xl border border-neutral-200 text-sm"
+                />
+                <button
+                  onClick={handleLeadSubmit}
+                  disabled={isSubmittingLead}
+                  className="w-full px-4 py-2 rounded-xl text-white"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  {isSubmittingLead ? "Senden..." : "Absenden"}
+                </button>
+                {leadSuccess && (
+                  <p className="text-xs text-green-600">Danke! Wir melden uns bald.</p>
+                )}
+              </div>
+            )}
+
+            {showApptForm && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold">Termin buchen</p>
+                  <button
+                    onClick={() => setShowApptForm(false)}
+                    className="text-xs text-neutral-500 hover:text-neutral-700"
+                  >
+                    Abbrechen
+                  </button>
+                </div>
+                <input
+                  value={apptData.name}
+                  onChange={(e) => setApptData((prev) => ({ ...prev, name: e.target.value }))}
+                  placeholder="Name"
+                  className="w-full px-3 py-2 rounded-xl border border-neutral-200 text-sm"
+                />
+                <input
+                  value={apptData.phone}
+                  onChange={(e) => setApptData((prev) => ({ ...prev, phone: e.target.value }))}
+                  placeholder="Telefonnummer"
+                  className="w-full px-3 py-2 rounded-xl border border-neutral-200 text-sm"
+                />
+                <div className="flex gap-2">
+                  <input
+                    type="date"
+                    min={new Date().toISOString().split("T")[0]}
+                    value={apptData.date}
+                    onChange={(e) => setApptData((prev) => ({ ...prev, date: e.target.value }))}
+                    className="flex-1 px-3 py-2 rounded-xl border border-neutral-200 text-sm"
+                  />
+                  <select
+                    value={apptData.time}
+                    onChange={(e) => setApptData((prev) => ({ ...prev, time: e.target.value }))}
+                    className="flex-1 px-3 py-2 rounded-xl border border-neutral-200 text-sm"
+                  >
+                    <option value="">Uhrzeit wählen</option>
+                    {timeSlots.map((slot) => (
+                      <option key={slot} value={slot}>{slot}</option>
+                    ))}
+                  </select>
+                </div>
+                <textarea
+                  value={apptData.notes}
+                  onChange={(e) => setApptData((prev) => ({ ...prev, notes: e.target.value }))}
+                  placeholder="Notizen"
+                  rows={2}
+                  className="w-full px-3 py-2 rounded-xl border border-neutral-200 text-sm"
+                />
+                <button
+                  onClick={handleAppointmentSubmit}
+                  disabled={isSubmittingAppt}
+                  className="w-full px-4 py-2 rounded-xl text-white"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  {isSubmittingAppt ? "Senden..." : "Terminanfrage senden"}
+                </button>
+                {apptSuccess && (
+                  <p className="text-xs text-green-600">Terminanfrage gesendet! Wir bestätigen bald.</p>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Input */}
           <div className="p-4 bg-white border-t border-neutral-200">
