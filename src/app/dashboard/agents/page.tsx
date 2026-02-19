@@ -111,7 +111,7 @@ export default function AgentsPage() {
     }
   };
 
-  const hasAgents = agents.length > 0;
+  const hasAgents = (agents?.length ?? 0) > 0;
 
   return (
     <div className="min-h-screen bg-surface text-white">
@@ -156,10 +156,10 @@ export default function AgentsPage() {
                     </span>
                   </div>
                   <div className="text-sm text-white/40">
-                    Sektor: {agent.sectors[0]?.name_de ?? "-"}
+                    Sektor: {agent?.sectors?.[0]?.name_de ?? "-"}
                   </div>
                   <div className="text-sm text-white/40">
-                    Paket: {agent.packages[0]?.name_de ?? "-"}
+                    Paket: {agent?.packages?.[0]?.name_de ?? "-"}
                   </div>
                   <div className="flex items-center justify-between text-sm text-white/60">
                     <span>Nachrichten (diesen Monat)</span>
