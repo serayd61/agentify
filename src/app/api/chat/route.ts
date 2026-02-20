@@ -138,16 +138,28 @@ async function callOpenAI(messages: Array<{ role: string; content: string }>) {
 }
 
 async function callAiProvider(messages: Array<{ role: string; content: string }>) {
-  if (GROQ_API_KEY) {
-    return callGroq(messages);
+  let provider: string | null = null;
+  let response: string | null = null;
+  try {
+    if (GROQ_API_KEY) {
+      provider = "groq";
+      response = await callGroq(messages);
+    } else if (OPENROUTER_API_KEY) {
+      provider = "openrouter";
+      response = await callOpenRouter(messages);
+    } else if (OPENAI_API_KEY) {
+      provider = "openai";
+      response = await callOpenAI(messages);
+    }
+  } catch (error) {
+    console.error("AI provider error", { provider, error });
+  } finally {
+    console.log("AI provider response", { provider, result: response });
   }
-  if (OPENROUTER_API_KEY) {
-    return callOpenRouter(messages);
+  if (!provider) {
+    console.warn("No AI API credentials configured. Provide GROQ_API_KEY, OPENROUTER_API_KEY, or OPENAI_API_KEY.");
   }
-  if (OPENAI_API_KEY) {
-    return callOpenAI(messages);
-  }
-  return null;
+  return response;
 }
 
 async function handleAgentChat(agentId: string, messages: Array<{ role: string; content: string }>, visitorId?: string) {
