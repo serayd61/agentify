@@ -56,6 +56,35 @@ const statusBadgeClasses: Record<string, string> = {
   canceled: "bg-rose-500/20 text-rose-200",
 };
 
+const demoLeadTrend: LeadTrendPoint[] = [
+  { label: "Mo", value: 2 },
+  { label: "Di", value: 5 },
+  { label: "Mi", value: 3 },
+  { label: "Do", value: 6 },
+  { label: "Fr", value: 4 },
+  { label: "Sa", value: 2 },
+  { label: "So", value: 7 },
+];
+
+const demoHourlyData: HourlyPoint[] = Array.from({ length: 24 }).map((_, hour) => ({
+  hourLabel: `${hour.toString().padStart(2, "0")}:00`,
+  count: (hour % 6) + 1,
+}));
+
+const demoRecentLeads: LeadRow[] = [
+  { id: "demo-1", name: "Max Mustermann", status: "pending", created_at: new Date().toISOString() },
+  { id: "demo-2", name: "Anna Keller", status: "new", created_at: new Date().toISOString() },
+  { id: "demo-3", name: "Theo Meier", status: "converted", created_at: new Date().toISOString() },
+  { id: "demo-4", name: "Lena Roth", status: "contacted", created_at: new Date().toISOString() },
+  { id: "demo-5", name: "Svenja Frei", status: "pending", created_at: new Date().toISOString() },
+];
+
+const demoAppointments: AppointmentRow[] = [
+  { id: "demo-appt-1", name: "Max Mustermann", time: "09:30", service: "Ersttermin", status: "confirmed" },
+  { id: "demo-appt-2", name: "Jasmin Huber", time: "11:00", service: "Beratung", status: "pending" },
+  { id: "demo-appt-3", name: "Tom Sutter", time: "13:15", service: "Support", status: "pending" },
+];
+
 const AnimatedMetric = ({ value, suffix = "", fallback = "0" }: AnimatedMetricProps) => {
   const [displayValue, setDisplayValue] = useState(0);
 
@@ -230,6 +259,15 @@ export default function DashboardPage() {
     };
   }, []);
 
+  const leadTrendDisplay = leadTrend.length ? leadTrend : demoLeadTrend;
+  const hourlyDisplay = hourlyData.length ? hourlyData : demoHourlyData;
+  const recentLeadsDisplay = recentLeads.length ? recentLeads : demoRecentLeads;
+  const todayAppointmentsDisplay = todayAppointments.length ? todayAppointments : demoAppointments;
+  const usingDemoTrend = leadTrend.length === 0;
+  const usingDemoHourly = hourlyData.length === 0;
+  const usingDemoLeads = recentLeads.length === 0;
+  const usingDemoAppointments = todayAppointments.length === 0;
+
   const kpiCards = useMemo(
     () => [
       {
@@ -348,9 +386,9 @@ export default function DashboardPage() {
                 </div>
                 <span className="text-xs text-white/70">{todayLeads} neue Leads heute</span>
               </div>
-              <div className="mt-6 h-60">
+              <div className="relative mt-6 h-60">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={leadTrend} margin={{ top: 10, right: 10, bottom: 0, left: 0 }}>
+                  <LineChart data={leadTrendDisplay} margin={{ top: 10, right: 10, bottom: 0, left: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                     <XAxis dataKey="label" stroke="rgba(255,255,255,0.6)" />
                     <YAxis stroke="rgba(255,255,255,0.6)" />
@@ -368,6 +406,16 @@ export default function DashboardPage() {
                     />
                   </LineChart>
                 </ResponsiveContainer>
+                {!leadTrendDisplay.length && (
+                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-2xl bg-black/70 text-xs uppercase tracking-[0.4em] text-white/60">
+                    Noch keine Daten
+                  </div>
+                )}
+                {usingDemoTrend && (
+                  <div className="pointer-events-none absolute left-4 top-4 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-[10px] uppercase tracking-[0.4em] text-white/70">
+                    Demo
+                  </div>
+                )}
               </div>
             </Card>
 
@@ -376,9 +424,9 @@ export default function DashboardPage() {
                 <p className="text-xs uppercase tracking-[0.4em] text-white/50">Stundenverteilung</p>
                 <h2 className="text-2xl font-semibold text-white">Wann kommen die Leads?</h2>
               </div>
-              <div className="mt-6 h-60">
+              <div className="relative mt-6 h-60">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={hourlyData} margin={{ top: 10, right: 10, bottom: 0, left: -10 }}>
+                  <BarChart data={hourlyDisplay} margin={{ top: 10, right: 10, bottom: 0, left: -10 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                     <XAxis dataKey="hourLabel" stroke="rgba(255,255,255,0.6)" interval={2} />
                     <YAxis stroke="rgba(255,255,255,0.6)" />
@@ -389,86 +437,107 @@ export default function DashboardPage() {
                     <Bar dataKey="count" fill="#3b82f6" radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
+                {!hourlyDisplay.length && (
+                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-2xl bg-black/70 text-xs uppercase tracking-[0.4em] text-white/60">
+                    Noch keine Daten
+                  </div>
+                )}
+                {usingDemoHourly && (
+                  <div className="pointer-events-none absolute left-4 top-4 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-[10px] uppercase tracking-[0.4em] text-white/70">
+                    Demo
+                  </div>
+                )}
               </div>
             </Card>
           </section>
 
-          <section className="grid gap-6 lg:grid-cols-3">
-            <Card className="border border-white/10 bg-white/5 p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.4em] text-white/50">Neueste Leads</p>
-                  <h3 className="text-xl font-semibold">Top 5</h3>
-                </div>
-                <Link href="/dashboard/leads" className="text-sm text-white/70 underline-offset-4 hover:text-white">
-                  Alle Leads
-                </Link>
+          <section className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.4em] text-white/50">Aktivitäten</p>
+                <h2 className="text-2xl font-semibold">Letzte Ereignisse</h2>
               </div>
-              <div className="mt-4 space-y-3">
-                {recentLeads.length === 0 && <p className="text-sm text-white/60">Keine Leads vorhanden.</p>}
-                {recentLeads.map((lead) => (
-                  <div key={lead.id} className="flex items-center justify-between rounded-2xl border border-white/5 bg-black/20 px-4 py-3">
-                    <div>
-                      <p className="text-sm font-semibold text-white">{lead.name || "Unbekannt"}</p>
-                      <p className="text-xs text-white/50">{new Date(lead.created_at).toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" })}</p>
-                    </div>
-                    <span
-                      className={`rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.3em] uppercase ${
-                        statusBadgeClasses[lead.status ?? "new"] ?? "bg-white/10 text-white"
-                      }`}
-                    >
-                      {lead.status ?? "Neu"}
-                    </span>
+              {(usingDemoLeads || usingDemoAppointments) && (
+                <span className="text-xs tracking-[0.4em] text-white/50">Demo-Daten sichtbar</span>
+              )}
+            </div>
+            <div className="grid gap-6 lg:grid-cols-3">
+              <Card className="border border-white/10 bg-white/5 p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.4em] text-white/50">Neueste Leads</p>
+                    <h3 className="text-xl font-semibold">Top 5</h3>
                   </div>
-                ))}
-              </div>
-            </Card>
-
-            <Card className="border border-white/10 bg-white/5 p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.4em] text-white/50">Heute</p>
-                  <h3 className="text-xl font-semibold">Randevu-Übersicht</h3>
+                  <Link href="/dashboard/leads" className="text-sm text-white/70 underline-offset-4 hover:text-white">
+                    Alle Leads
+                  </Link>
                 </div>
-                <span className="text-xs text-white/60">{todayAppointments.length} Termine</span>
-              </div>
-              <div className="mt-4 space-y-3">
-                {todayAppointments.length === 0 && <p className="text-sm text-white/60">Keine Termine für heute.</p>}
-                {todayAppointments.map((appointment) => (
-                  <div key={appointment.id} className="flex flex-col gap-1 rounded-2xl border border-white/5 bg-black/20 px-4 py-3">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-white">{appointment.name || "Unbekannter Kunde"}</p>
-                      <span className="text-xs text-white/60">{appointment.time || "—"}</span>
+                <div className="mt-4 space-y-3">
+                  {recentLeadsDisplay.length === 0 && <p className="text-sm text-white/60">Keine Leads vorhanden.</p>}
+                  {recentLeadsDisplay.map((lead) => (
+                    <div key={lead.id} className="flex items-center justify-between rounded-2xl border border-white/5 bg-black/20 px-4 py-3">
+                      <div>
+                        <p className="text-sm font-semibold text-white">{lead.name || "Unbekannt"}</p>
+                        <p className="text-xs text-white/50">{new Date(lead.created_at).toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" })}</p>
+                      </div>
+                      <span
+                        className={`rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.3em] uppercase ${
+                          statusBadgeClasses[lead.status ?? "new"] ?? "bg-white/10 text-white"
+                        }`}
+                      >
+                        {lead.status ?? "Neu"}
+                      </span>
                     </div>
-                    <p className="text-xs text-white/50">{appointment.service || "Allgemein"}</p>
-                  </div>
-                ))}
-              </div>
-            </Card>
+                  ))}
+                </div>
+              </Card>
 
-            <Card className="border border-white/10 bg-white/5 p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.4em] text-white/50">Agent Performance</p>
-                  <h3 className="text-xl font-semibold">Live Kennzahlen</h3>
+              <Card className="border border-white/10 bg-white/5 p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.4em] text-white/50">Heute</p>
+                    <h3 className="text-xl font-semibold">Randevu-Übersicht</h3>
+                  </div>
+                  <span className="text-xs text-white/60">{todayAppointmentsDisplay.length} Termine</span>
                 </div>
-                <span className="text-xs text-white/70">Aktualisiert jetzt</span>
-              </div>
-              <div className="mt-6 space-y-4">
-                <div className="flex items-center justify-between text-sm text-white/60">
-                  <span>Aktive Agenten</span>
-                  <span className="text-white font-semibold">{activeAgents}</span>
+                <div className="mt-4 space-y-3">
+                  {todayAppointmentsDisplay.length === 0 && <p className="text-sm text-white/60">Keine Termine für heute.</p>}
+                  {todayAppointmentsDisplay.map((appointment) => (
+                    <div key={appointment.id} className="flex flex-col gap-1 rounded-2xl border border-white/5 bg-black/20 px-4 py-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold text-white">{appointment.name || "Unbekannter Kunde"}</p>
+                        <span className="text-xs text-white/60">{appointment.time || "—"}</span>
+                      </div>
+                      <p className="text-xs text-white/50">{appointment.service || "Allgemein"}</p>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex items-center justify-between text-sm text-white/60">
-                  <span>Antworten heute</span>
-                  <span className="text-white font-semibold">{messagesAnswered}</span>
+              </Card>
+
+              <Card className="border border-white/10 bg-white/5 p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.4em] text-white/50">Agent Performance</p>
+                    <h3 className="text-xl font-semibold">Live Kennzahlen</h3>
+                  </div>
+                  <span className="text-xs text-white/70">Aktualisiert jetzt</span>
                 </div>
-                <div className="flex items-center justify-between text-sm text-white/60">
-                  <span>Erfolgsquote</span>
-                  <span className="text-white font-semibold">{conversionRate}%</span>
+                <div className="mt-6 space-y-4">
+                  <div className="flex items-center justify-between text-sm text-white/60">
+                    <span>Aktive Agenten</span>
+                    <span className="text-white font-semibold">{activeAgents}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm text-white/60">
+                    <span>Antworten heute</span>
+                    <span className="text-white font-semibold">{messagesAnswered}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm text-white/60">
+                    <span>Erfolgsquote</span>
+                    <span className="text-white font-semibold">{conversionRate}%</span>
+                  </div>
                 </div>
-              </div>
-            </Card>
+              </Card>
+            </div>
           </section>
         </div>
       </main>
