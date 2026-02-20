@@ -38,33 +38,40 @@ export interface ConversationData {
   };
 }
 
-export async function startConversation(data: ConversationData): Promise<string> {
-  const { data: conversation, error } = await supabase
-    .from("conversations")
-    .insert({
-      agent_id: data.agentId,
-      customer_id: data.customerId,
-      visitor_id: data.visitorId,
-      visitor_name: data.visitorInfo?.name,
-      visitor_email: data.visitorInfo?.email,
-      visitor_phone: data.visitorInfo?.phone,
-      visitor_device: data.visitorInfo?.device,
-      visitor_browser: data.visitorInfo?.browser,
-      visitor_city: data.visitorInfo?.city,
-      visitor_country: data.visitorInfo?.country,
-      visitor_ip: data.visitorInfo?.ip,
-      messages: [],
-      status: "active",
-    })
-    .select("id")
-    .single();
+export async function startConversation(data: ConversationData): Promise<string | null> {
+  console.log("[Conversation] Starting conversation:", JSON.stringify(data));
+  try {
+    const { data: conversation, error } = await supabase
+      .from("conversations")
+      .insert({
+        agent_id: data.agentId,
+        customer_id: data.customerId,
+        visitor_id: data.visitorId,
+        visitor_name: data.visitorInfo?.name,
+        visitor_email: data.visitorInfo?.email,
+        visitor_phone: data.visitorInfo?.phone,
+        visitor_device: data.visitorInfo?.device,
+        visitor_browser: data.visitorInfo?.browser,
+        visitor_city: data.visitorInfo?.city,
+        visitor_country: data.visitorInfo?.country,
+        visitor_ip: data.visitorInfo?.ip,
+        messages: [],
+        status: "active",
+      })
+      .select("id")
+      .single();
 
-  if (error) {
-    console.error("Start conversation error:", error);
-    throw error;
+    if (error) {
+      console.error("[Conversation] Insert error:", error.message, error.details, error.hint);
+      return null;
+    }
+
+    console.log("[Conversation] Created:", conversation.id);
+    return conversation.id;
+  } catch (err) {
+    console.error("[Conversation] Exception:", err);
+    return null;
   }
-
-  return conversation.id;
 }
 
 export async function addMessage(
@@ -72,61 +79,87 @@ export async function addMessage(
   message: Message,
   extractedData?: Record<string, unknown>
 ): Promise<void> {
-  const { data: conv } = await supabase
-    .from("conversations")
-    .select<ConversationRow>("messages, extracted_data, message_count")
-    .eq("id", conversationId)
-    .maybeSingle();
+  console.log("[Conversation] addMessage", conversationId, message.role);
+  try {
+    const { data: conv, error } = await supabase
+      .from("conversations")
+      .select<ConversationRow>("messages, extracted_data, message_count")
+      .eq("id", conversationId)
+      .maybeSingle();
 
-  if (!conv) return;
+    if (error) {
+      console.error("[Conversation] Fetch error:", error.message, error.details, error.hint);
+      return;
+    }
 
-  const updatedMessages = [...(conv.messages || []), message];
-  const newExtractedData = {
-    ...(conv.extracted_data || {}),
-    ...(extractedData || {}),
-  };
+    if (!conv) {
+      console.warn("[Conversation] Conversation missing", conversationId);
+      return;
+    }
 
-  const updates: Record<string, unknown> = {
-    messages: updatedMessages,
-    message_count: updatedMessages.length,
-    extracted_data: newExtractedData,
-    updated_at: new Date().toISOString(),
-  };
+    const updatedMessages = [...(conv.messages || []), message];
+    const newExtractedData = {
+      ...(conv.extracted_data || {}),
+      ...(extractedData || {}),
+    };
 
-  if (extractedData?.visitorName) updates.visitor_name = extractedData.visitorName;
-  if (extractedData?.visitorEmail) updates.visitor_email = extractedData.visitorEmail;
-  if (extractedData?.visitorPhone) updates.visitor_phone = extractedData.visitorPhone;
-  if (extractedData?.intent) updates.intent = extractedData.intent;
-  if (extractedData?.sentiment) updates.sentiment = extractedData.sentiment;
-  if (extractedData?.topic) {
-    updates.topics = Array.isArray(extractedData.topic) ? extractedData.topic : [extractedData.topic];
+    const updates: Record<string, unknown> = {
+      messages: updatedMessages,
+      message_count: updatedMessages.length,
+      extracted_data: newExtractedData,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (extractedData?.visitorName) updates.visitor_name = extractedData.visitorName;
+    if (extractedData?.visitorEmail) updates.visitor_email = extractedData.visitorEmail;
+    if (extractedData?.visitorPhone) updates.visitor_phone = extractedData.visitorPhone;
+    if (extractedData?.intent) updates.intent = extractedData.intent;
+    if (extractedData?.sentiment) updates.sentiment = extractedData.sentiment;
+    if (extractedData?.topic) {
+      updates.topics = Array.isArray(extractedData.topic) ? extractedData.topic : [extractedData.topic];
+    }
+
+    await supabase.from("conversations").update(updates).eq("id", conversationId);
+  } catch (error) {
+    console.error("[Conversation] addMessage exception", error);
   }
-
-  await supabase.from("conversations").update(updates).eq("id", conversationId);
 }
 
 export async function endConversation(conversationId: string, outcome: string = "none"): Promise<void> {
-  const { data: conv } = await supabase
-    .from("conversations")
-    .select<ConversationRow>("started_at")
-    .eq("id", conversationId)
-    .maybeSingle();
+  console.log("[Conversation] Ending", conversationId, outcome);
+  try {
+    const { data: conv, error } = await supabase
+      .from("conversations")
+      .select<ConversationRow>("started_at")
+      .eq("id", conversationId)
+      .maybeSingle();
 
-  if (!conv) return;
+    if (error) {
+      console.error("[Conversation] end fetch error:", error);
+      return;
+    }
 
-  const endedAt = new Date();
-  const startedAt = new Date(conv.started_at);
-  const durationSeconds = Math.floor((endedAt.getTime() - startedAt.getTime()) / 1000);
+    if (!conv) {
+      console.warn("[Conversation] end not found", conversationId);
+      return;
+    }
 
-  await supabase
-    .from("conversations")
-    .update({
-      status: "ended",
-      ended_at: endedAt.toISOString(),
-      duration_seconds: durationSeconds,
-      outcome,
-    })
-    .eq("id", conversationId);
+    const endedAt = new Date();
+    const startedAt = new Date(conv.started_at);
+    const durationSeconds = Math.floor((endedAt.getTime() - startedAt.getTime()) / 1000);
+
+    await supabase
+      .from("conversations")
+      .update({
+        status: "ended",
+        ended_at: endedAt.toISOString(),
+        duration_seconds: durationSeconds,
+        outcome,
+      })
+      .eq("id", conversationId);
+  } catch (error) {
+    console.error("[Conversation] end exception", error);
+  }
 }
 
 export async function getConversations(

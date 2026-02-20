@@ -191,6 +191,7 @@ async function handleAgentChat(
     .eq("id", agentId)
     .maybeSingle();
 
+  console.log("[Chat API] Agent found:", agent?.id, "Customer:", agent?.customer_id);
   if (!agent) {
     throw new Error("Agent not found");
   }
@@ -244,7 +245,8 @@ async function handleAgentChat(
     topic: extractedInfo.topic,
   };
 
-  if (!convId) {
+  if (!convId && agentId && agent?.customer_id) {
+    console.log("[Chat API] Starting new conversation...");
     try {
       convId = await startConversation({
         agentId: agent.id,
@@ -258,12 +260,14 @@ async function handleAgentChat(
           browser,
         },
       });
+      console.log("[Chat API] New conversationId:", convId);
     } catch (startError) {
       console.error("Failed to start conversation", startError);
     }
   }
 
   if (convId) {
+    console.log("[Chat API] Attempting to save conversation...");
     try {
       await addMessage(convId, { role: "user", content: lastUserMessage, timestamp: new Date().toISOString() }, metadataPayload);
       await addMessage(convId, { role: "assistant", content: aiMessage, timestamp: new Date().toISOString() });
