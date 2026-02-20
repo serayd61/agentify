@@ -39,6 +39,15 @@ export function ChatWidget({
   ]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return localStorage.getItem("agentify_conversation_id");
+  });
+  const [visitorId] = useState<string>(() => {
+    if (typeof window === "undefined") return crypto.randomUUID();
+    const stored = localStorage.getItem("agentify_visitor_id");
+    return stored || crypto.randomUUID();
+  });
   const [showLeadForm, setShowLeadForm] = useState(false);
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
   const [leadSuccess, setLeadSuccess] = useState(false);
@@ -58,8 +67,17 @@ export function ChatWidget({
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("agentify_visitor_id", visitorId);
+      if (conversationId) {
+        localStorage.setItem("agentify_conversation_id", conversationId);
+      }
+    }
+  }, [visitorId, conversationId]);
+
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || !agentId) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -68,29 +86,52 @@ export function ChatWidget({
       timestamp: new Date(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setInput("");
     setIsTyping(true);
 
-    // Simulate AI response
-    await new Promise((resolve) => setTimeout(resolve, 1000 + Math.random() * 1500));
+    const messagePayload = updatedMessages.map((msg) => ({ role: msg.role, content: msg.content }));
+    const browserInfo = typeof navigator !== "undefined" ? navigator.userAgent : "unknown";
+    const deviceType = /Mobi|Android|iPhone|iPad|Tablet/i.test(browserInfo) ? "mobile" : "desktop";
 
-    const responses = [
-      "Vielen Dank für Ihre Anfrage! Ich helfe Ihnen gerne weiter.",
-      "Das ist eine gute Frage. Lassen Sie mich Ihnen mehr dazu erzählen.",
-      "Ich verstehe. Können Sie mir mehr Details geben?",
-      "Natürlich! Ich kann Ihnen dabei helfen.",
-    ];
-
-    const assistantMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      role: "assistant",
-      content: responses[Math.floor(Math.random() * responses.length)],
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, assistantMessage]);
-    setIsTyping(false);
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agentId,
+          messages: messagePayload,
+          conversationId,
+          visitorId,
+          device: deviceType,
+          browser: browserInfo,
+        }),
+      });
+      const data = await response.json();
+      const aiContent = data.message || "Ich kann im Moment leider nicht antworten.";
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: aiContent,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
+      if (data.conversationId) {
+        setConversationId(data.conversationId);
+      }
+    } catch (error) {
+      console.error("Chat send failed", error);
+      const fallbackMessage: Message = {
+        id: (Date.now() + 2).toString(),
+        role: "assistant",
+        content: "Ich konnte gerade keine Verbindung herstellen. Bitte versuche es später erneut.",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, fallbackMessage]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const handleLeadSubmit = async () => {

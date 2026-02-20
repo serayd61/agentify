@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { demoScenarios } from "@/lib/demo-scenarios";
 import { generateSystemPrompt, AgentConfig } from "@/lib/agent-prompts";
 import { buildContextPrompt, extractInfo, ConversationContext } from "@/lib/conversation-memory";
+import { startConversation, addMessage } from "@/lib/conversation-service";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -27,6 +28,8 @@ interface ChatRequest {
   sector?: string;
   conversationId?: string;
   visitorId?: string;
+  device?: string;
+  browser?: string;
   messages?: Array<{ role: string; content: string }>;
   message?: string;
 }
@@ -50,9 +53,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Missing agentId or message" }, { status: 400 });
     }
 
-    const responsePayload = await handleAgentChat(body.agentId, messages, body.visitorId);
+    const responsePayload = await handleAgentChat(body.agentId, messages, {
+      conversationId: body.conversationId,
+      visitorId: body.visitorId,
+      device: body.device,
+      browser: body.browser,
+    });
 
-    return NextResponse.json({ ...responsePayload, conversationId: body.conversationId });
+    return NextResponse.json(responsePayload);
   } catch (error) {
     console.error("Chat API error:", error);
     return NextResponse.json({ success: false, error: "Internal error" }, { status: 500 });
@@ -162,8 +170,17 @@ async function callAiProvider(messages: Array<{ role: string; content: string }>
   return response;
 }
 
-async function handleAgentChat(agentId: string, messages: Array<{ role: string; content: string }>, visitorId?: string) {
-  void visitorId;
+async function handleAgentChat(
+  agentId: string,
+  messages: Array<{ role: string; content: string }>,
+  options: {
+    visitorId?: string;
+    conversationId?: string;
+    device?: string;
+    browser?: string;
+  }
+) {
+  const { visitorId, conversationId, device, browser } = options;
   if (!supabaseUrl || !supabaseServiceKey) {
     throw new Error("Supabase configuration missing");
   }
@@ -177,6 +194,8 @@ async function handleAgentChat(agentId: string, messages: Array<{ role: string; 
   if (!agent) {
     throw new Error("Agent not found");
   }
+
+  let convId = conversationId ?? null;
 
   const agentConfig: AgentConfig = {
     companyName: agent.company_name || "Unser Unternehmen",
@@ -215,7 +234,45 @@ async function handleAgentChat(agentId: string, messages: Array<{ role: string; 
   const aiMessage = (await callAiProvider(payloadMessages))
     ?? getFallbackResponse(lastUserMessage, agent.sector || "treuhand");
 
-  return { success: true, message: aiMessage, extractedInfo };
+  const metadataPayload: Record<string, unknown> = {
+    ...(extractedInfo.extractedData || {}),
+    visitorName: extractedInfo.visitorName,
+    visitorEmail: extractedInfo.visitorEmail,
+    visitorPhone: extractedInfo.visitorPhone,
+    intent: extractedInfo.intent,
+    sentiment: extractedInfo.sentiment,
+    topic: extractedInfo.topic,
+  };
+
+  if (!convId) {
+    try {
+      convId = await startConversation({
+        agentId: agent.id,
+        customerId: agent.customer_id,
+        visitorId: visitorId || crypto.randomUUID(),
+        visitorInfo: {
+          name: extractedInfo.visitorName,
+          email: extractedInfo.visitorEmail,
+          phone: extractedInfo.visitorPhone,
+          device,
+          browser,
+        },
+      });
+    } catch (startError) {
+      console.error("Failed to start conversation", startError);
+    }
+  }
+
+  if (convId) {
+    try {
+      await addMessage(convId, { role: "user", content: lastUserMessage, timestamp: new Date().toISOString() }, metadataPayload);
+      await addMessage(convId, { role: "assistant", content: aiMessage, timestamp: new Date().toISOString() });
+    } catch (addError) {
+      console.error("Failed to record conversation messages", addError);
+    }
+  }
+
+  return { success: true, message: aiMessage, extractedInfo, conversationId: convId };
 }
 
 function getFallbackResponse(lastUserMessage: string, sector: string): string {
