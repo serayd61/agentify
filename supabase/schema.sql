@@ -116,19 +116,51 @@ CREATE TABLE IF NOT EXISTS knowledge_items (
 -- CONVERSATIONS (Gespräche)
 -- ========================================
 CREATE TABLE IF NOT EXISTS conversations (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  agent_id UUID REFERENCES customer_agents(id) ON DELETE CASCADE,
-  visitor_id TEXT,
-  visitor_name TEXT,
-  visitor_email TEXT,
-  visitor_phone TEXT,
-  source TEXT DEFAULT 'website',
-  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'closed', 'archived')),
-  rating INTEGER CHECK (rating >= 1 AND rating <= 5),
-  metadata JSONB DEFAULT '{}',
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  agent_id UUID REFERENCES agents(id) ON DELETE CASCADE,
+  customer_id UUID REFERENCES customers(id),
+  visitor_id VARCHAR(100),
+  visitor_name VARCHAR(200),
+  visitor_email VARCHAR(200),
+  visitor_phone VARCHAR(50),
+  visitor_ip VARCHAR(50),
+  visitor_city VARCHAR(100),
+  visitor_country VARCHAR(10) DEFAULT 'CH',
+  visitor_device VARCHAR(20),
+  visitor_browser VARCHAR(50),
+  messages JSONB DEFAULT '[]',
+  message_count INTEGER DEFAULT 0,
+  intent VARCHAR(50),
+  sentiment VARCHAR(20),
+  topics TEXT[],
+  extracted_data JSONB DEFAULT '{}',
+  outcome VARCHAR(50),
+  lead_id UUID REFERENCES leads(id),
+  appointment_id UUID REFERENCES appointments(id),
+  started_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  ended_at TIMESTAMP WITH TIME ZONE,
+  duration_seconds INTEGER,
+  response_time_avg INTEGER,
+  satisfaction_rating INTEGER CHECK (satisfaction_rating BETWEEN 1 AND 5),
+  feedback_text TEXT,
+  status VARCHAR(20) DEFAULT 'active',
+  is_read BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+CREATE INDEX idx_conversations_agent ON conversations(agent_id);
+CREATE INDEX idx_conversations_customer ON conversations(customer_id);
+CREATE INDEX idx_conversations_status ON conversations(status);
+CREATE INDEX idx_conversations_created ON conversations(created_at DESC);
+
+ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Customers can view own conversations" ON conversations
+  FOR SELECT USING (customer_id = auth.uid());
+CREATE POLICY "System can insert conversations" ON conversations
+  FOR INSERT WITH CHECK (true);
+CREATE POLICY "System can update conversations" ON conversations
+  FOR UPDATE USING (true);
 
 -- ========================================
 -- MESSAGES (Nachrichten)
