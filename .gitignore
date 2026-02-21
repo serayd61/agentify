@@ -36,6 +36,12 @@ yarn-error.log*
 # vercel
 .vercel
 
+# expo
+/pulse-locale/node_modules
+/pulse-locale/.expo
+/pulse-locale/web-build
+/pulse-locale/dist
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
