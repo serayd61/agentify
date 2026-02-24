@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Separate Expo/React Native project with its own config
+    "pulse-locale/**",
+    // CLI scripts
+    "scripts/**",
   ]),
 ]);
 

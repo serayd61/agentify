@@ -83,7 +83,7 @@ export async function addMessage(
   try {
     const { data: conv, error } = await supabase
       .from("conversations")
-      .select<ConversationRow>("messages, extracted_data, message_count")
+      .select("messages, extracted_data, message_count")
       .eq("id", conversationId)
       .maybeSingle();
 
@@ -97,9 +97,10 @@ export async function addMessage(
       return;
     }
 
-    const updatedMessages = [...(conv.messages || []), message];
+    const row = conv as unknown as ConversationRow;
+    const updatedMessages = [...(row.messages || []), message];
     const newExtractedData = {
-      ...(conv.extracted_data || {}),
+      ...(row.extracted_data || {}),
       ...(extractedData || {}),
     };
 
@@ -130,7 +131,7 @@ export async function endConversation(conversationId: string, outcome: string = 
   try {
     const { data: conv, error } = await supabase
       .from("conversations")
-      .select<ConversationRow>("started_at")
+      .select("started_at")
       .eq("id", conversationId)
       .maybeSingle();
 
@@ -144,8 +145,9 @@ export async function endConversation(conversationId: string, outcome: string = 
       return;
     }
 
+    const row = conv as unknown as ConversationRow;
     const endedAt = new Date();
-    const startedAt = new Date(conv.started_at);
+    const startedAt = new Date(row.started_at!);
     const durationSeconds = Math.floor((endedAt.getTime() - startedAt.getTime()) / 1000);
 
     await supabase
@@ -168,7 +170,7 @@ export async function getConversations(
 ): Promise<ConversationRow[]> {
   let query = supabase
     .from("conversations")
-    .select<ConversationRow>("*")
+    .select("*")
     .eq("customer_id", customerId)
     .order("created_at", { ascending: false });
 
@@ -186,17 +188,17 @@ export async function getConversations(
     console.error("Get conversations error:", error);
     return [];
   }
-  return data || [];
+  return (data || []) as unknown as ConversationRow[];
 }
 
 export async function getActiveConversations(customerId: string): Promise<ConversationRow[]> {
   const { data } = await supabase
     .from("conversations")
-    .select<ConversationRow>("*")
+    .select("*")
     .eq("customer_id", customerId)
     .eq("status", "active")
     .order("updated_at", { ascending: false });
-  return data || [];
+  return (data || []) as unknown as ConversationRow[];
 }
 
 export interface ConversationStats {
@@ -212,14 +214,15 @@ export async function getConversationStats(customerId: string, days: number = 7)
   const fromDate = new Date();
   fromDate.setDate(fromDate.getDate() - days);
 
-  const { data: conversations } = await supabase
+  const { data: rawConversations } = await supabase
     .from("conversations")
-    .select<ConversationRow>("*")
+    .select("*")
     .eq("customer_id", customerId)
     .gte("created_at", fromDate.toISOString());
 
-  if (!conversations) return null;
+  if (!rawConversations) return null;
 
+  const conversations = rawConversations as unknown as ConversationRow[];
   const total = conversations.length;
   const leads = conversations.filter((c) => c.outcome === "lead_created").length;
   const appointments = conversations.filter((c) => c.outcome === "appointment_booked").length;
