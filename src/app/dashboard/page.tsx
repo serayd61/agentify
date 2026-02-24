@@ -30,6 +30,11 @@ import {
 
 const supabase = createClient();
 
+function getSupabase() {
+  if (!supabase) throw new Error("Supabase is not configured");
+  return supabase;
+}
+
 type LeadTrendPoint = { label: string; value: number };
 type HourlyPoint = { hourLabel: string; count: number };
 type LeadRow = { id: string; name: string | null; status: string | null; created_at: string };
@@ -170,6 +175,7 @@ export default function DashboardPage() {
       setLoading(true);
       setError(null);
       try {
+        const db = getSupabase();
         const today = new Date();
         const todayIso = today.toISOString().split("T")[0];
         const weekAgoIso = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString();
@@ -177,46 +183,46 @@ export default function DashboardPage() {
         weekEnd.setDate(today.getDate() + 6);
         const weekEndIso = weekEnd.toISOString().split("T")[0];
 
-        const { count: todayLeadsCount } = await supabase
+        const { count: todayLeadsCount } = await db
           .from("leads")
           .select("id", { count: "exact", head: true })
           .gte("created_at", `${todayIso}T00:00:00Z`);
 
-        const { count: weekAppointmentsCount } = await supabase
+        const { count: weekAppointmentsCount } = await db
           .from("appointments")
           .select("id", { count: "exact", head: true })
           .gte("date", todayIso)
           .lte("date", weekEndIso);
 
-        const { data: leadTrendData } = await supabase
+        const { data: leadTrendData } = await db
           .from("leads")
           .select("id, name, status, created_at")
           .gte("created_at", weekAgoIso)
           .order("created_at", { ascending: true });
 
-        const { data: recentLeadRows } = await supabase
+        const { data: recentLeadRows } = await db
           .from("leads")
           .select("id, name, status, created_at")
           .order("created_at", { ascending: false })
           .limit(5);
 
-        const { data: todayAppointmentsData } = await supabase
+        const { data: todayAppointmentsData } = await db
           .from("appointments")
           .select("id, name, service, time, status")
           .eq("date", todayIso)
           .order("time", { ascending: true });
 
-        const { count: activeAgentsCount } = await supabase
+        const { count: activeAgentsCount } = await db
           .from("agents")
           .select("id", { count: "exact", head: true })
           .eq("status", "active");
 
-        const { count: activeConversationsCount } = await supabase
+        const { count: activeConversationsCount } = await db
           .from("conversations")
           .select("id", { count: "exact", head: true })
           .eq("status", "active");
 
-        const { count: messageCountToday } = await supabase
+        const { count: messageCountToday } = await db
           .from("messages")
           .select("id", { count: "exact", head: true })
           .gte("created_at", `${todayIso}T00:00:00Z`);
