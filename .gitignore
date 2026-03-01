@@ -47,3 +47,9 @@ yarn-error.log*
 next-env.d.ts
 tailwindcss-postcss-*.tgz
 .env.local
+
+# AJAN SISTEMLERI agents (Python runtime — not deployed to Vercel)
+agents/.env
+agents/token.json
+agents/credentials.json
+agents/.tmp/

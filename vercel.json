@@ -1,5 +1,13 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "src/app/api/marketing/trigger/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/marketing/webhooks/instantly/route.ts": {
+      "maxDuration": 10
+    }
+  },
   "crons": [
     {
       "path": "/api/workflows/cron?job=cleanup-expired-sessions",

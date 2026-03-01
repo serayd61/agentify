@@ -1,0 +1,4 @@
+# Python agent scripts — run on Modal, not on Vercel
+agents/
+*.py
+requirements.txt

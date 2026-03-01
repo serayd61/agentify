@@ -15,6 +15,11 @@ import {
   TrendingUp,
   Clock,
   Star,
+  Zap,
+  Bot,
+  FileText,
+  Mail,
+  ArrowRight,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -338,6 +343,35 @@ export default function DashboardPage() {
       <Header />
       <main className="flex-1 pt-24 pb-16">
         <div className="container space-y-8">
+          {/* Marketing Automation Quick Access */}
+          <section>
+            <div className="flex items-center gap-2 mb-3">
+              <Zap className="w-4 h-4 text-[#ff3b30]" />
+              <span className="text-xs font-semibold text-white/50 uppercase tracking-wider">
+                Marketing Automation
+              </span>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {[
+                { href: "/dashboard/marketing/leads", icon: Users, label: "Lead Generation", color: "#3b82f6" },
+                { href: "/dashboard/marketing/proposals", icon: FileText, label: "Proposal Builder", color: "#8b5cf6" },
+                { href: "/dashboard/marketing/email-automation", icon: Mail, label: "E-Mail Autoreply", color: "#10b981" },
+              ].map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="group flex items-center gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.03] px-4 py-3 transition-all hover:border-white/[0.12] hover:bg-white/[0.05]"
+                >
+                  <item.icon className="w-4 h-4 shrink-0" style={{ color: item.color }} />
+                  <span className="text-sm font-medium text-white/70 group-hover:text-white/90 transition-colors">
+                    {item.label}
+                  </span>
+                  <ArrowRight className="w-3.5 h-3.5 text-white/25 ml-auto transition-transform group-hover:translate-x-0.5 group-hover:text-white/50" />
+                </Link>
+              ))}
+            </div>
+          </section>
+
           <section className="grid gap-4 lg:grid-cols-6">
             {kpiCards.map((card) => (
               <motion.div
